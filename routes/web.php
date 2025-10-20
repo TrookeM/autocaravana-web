@@ -1,7 +1,9 @@
 <?php
+// routes/web.php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController; // <-- Importamos el controlador
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Cuando alguien visite la página de inicio ('/'), 
+// llama a la función 'index' de HomeController
+Route::get('/', [HomeController::class, 'index']);
