@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\BookingResource\Pages;
 use App\Filament\Resources\BookingResource\RelationManagers;
-use App\Models\Booking;
+use App\Models\Booking; // Importar Booking
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,147 +12,120 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\DatePicker;
+
+// Imports para la tabla
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Columns\SelectColumn; // 1. Importar SelectColumn
+use Filament\Tables\Actions\Action; // 2. Importar Action
 
 class BookingResource extends Resource
 {
     protected static ?string $model = Booking::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar-days'; // Icono de calendario
 
     public static function form(Form $form): Form
     {
+        // El formulario de creación/edición puede ser simple por ahora
         return $form
             ->schema([
-                // Selector para elegir la autocaravana
-                Select::make('campervan_id')
-                    ->label('Autocaravana')
-                    ->relationship('campervan', 'name') // Muestra el 'name' de la 'campervan'
+                Forms\Components\Select::make('campervan_id')
+                    ->relationship('campervan', 'name')
                     ->required(),
-
-                // Selector de fechas
-                DatePicker::make('start_date')
-                    ->label('Desde')
-                    ->required(),
-                DatePicker::make('end_date')
-                    ->label('Hasta')
-                    ->required(),
-
-                // Datos del cliente
-                TextInput::make('customer_name')
+                Forms\Components\TextInput::make('customer_name')
                     ->label('Nombre Cliente')
                     ->required(),
-                TextInput::make('customer_email')
+                Forms\Components\TextInput::make('customer_email')
                     ->label('Email Cliente')
                     ->email()
                     ->required(),
-                TextInput::make('customer_phone')
-                    ->label('Teléfono Cliente')
-                    ->tel(),
-
-                // Precio y Estado
-                TextInput::make('total_price')
+                Forms\Components\DatePicker::make('start_date')
+                    ->label('Check-in')
+                    ->required(),
+                Forms\Components\DatePicker::make('end_date')
+                    ->label('Check-out')
+                    ->required(),
+                Forms\Components\TextInput::make('total_price')
                     ->label('Precio Total')
                     ->numeric()
                     ->prefix('€')
                     ->required(),
-
-                Select::make('status')
+                Forms\Components\Select::make('status')
                     ->label('Estado')
                     ->options([
-                        'pending' => 'Pendiente',
+                        'pending' => 'Pendiente', // Si decides cambiar el 'confirmed' por defecto
                         'confirmed' => 'Confirmada',
                         'cancelled' => 'Cancelada',
                     ])
-                    ->required()
-                    ->default('pending'),
+                    ->default('confirmed')
+                    ->required(),
             ]);
     }
 
-    public static function table(Tables\Table $table): Tables\Table
+    public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                // Columna para la Autocaravana (con relación)
-                TextColumn::make('campervan.name')
-                    ->label('Autocaravana')
-                    ->searchable()
+                TextColumn::make('id')
+                    ->label('ID Reserva')
                     ->sortable(),
-
-                // Columna para el Cliente
+                TextColumn::make('campervan.name') // Muestra el nombre usando la relación
+                    ->label('Autocaravana')
+                    ->searchable(),
                 TextColumn::make('customer_name')
                     ->label('Cliente')
-                    ->searchable()
-                    ->sortable(),
-
-                // Columna para el Estado (con colores)
-                BadgeColumn::make('status')
-                    ->label('Estado')
-                    ->colors([
-                        'warning' => 'pending',   // Amarillo para pendiente
-                        'success' => 'confirmed', // Verde para confirmada
-                        'danger' => 'cancelled',  // Rojo para cancelada
-                    ])
-                    ->sortable(),
-
-                // Columna de Fechas
+                    ->searchable(),
                 TextColumn::make('start_date')
-                    ->label('Desde')
-                    ->date('d/m/Y') // Formato de fecha
-                    ->sortable(),
-
-                TextColumn::make('end_date')
-                    ->label('Hasta')
+                    ->label('Check-in')
                     ->date('d/m/Y')
                     ->sortable(),
-
-                // Columna de Precio
-                TextColumn::make('total_price')
-                    ->label('Precio Total')
-                    ->money('EUR') // Formato de dinero
+                TextColumn::make('end_date')
+                    ->label('Check-out')
+                    ->date('d/m/Y')
                     ->sortable(),
-
-                // Columna de Creación (oculta)
-                TextColumn::make('created_at')
-                    ->label('Fecha Reserva')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true), // Oculta por defecto
-            ])
-            ->filters([
-                // Añadimos un FILTRO por estado
-                SelectFilter::make('status')
-                    ->label('Filtrar por Estado')
+                
+                // 3. COLUMNA DE ESTADO (Editable)
+                SelectColumn::make('status')
+                    ->label('Estado')
                     ->options([
-                        'pending' => 'Pendiente',
                         'confirmed' => 'Confirmada',
                         'cancelled' => 'Cancelada',
                     ])
+                    ->sortable(),
+                
+                TextColumn::make('total_price')
+                    ->label('Total')
+                    ->money('EUR')
+                    ->sortable(),
+            ])
+            ->filters([
+                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(), // Añadimos un botón de "Ver"
+                
+                // 4. ACCIÓN DE CANCELAR
+                Action::make('Cancelar')
+                    ->action(fn (Booking $record) => $record->update(['status' => 'cancelled']))
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->requiresConfirmation() // Pide confirmación
+                    ->hidden(fn (Booking $record) => $record->status === 'cancelled'), // Oculta si ya está cancelada
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-            ->defaultSort('start_date', 'desc'); // Ordena por defecto (las más nuevas primero)
+            ]);
     }
-
+    
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-
+    
     public static function getPages(): array
     {
         return [
@@ -160,5 +133,5 @@ class BookingResource extends Resource
             'create' => Pages\CreateBooking::route('/create'),
             'edit' => Pages\EditBooking::route('/{record}/edit'),
         ];
-    }
+    }    
 }

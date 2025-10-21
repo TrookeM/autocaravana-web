@@ -33,13 +33,9 @@
     }
     
     /* Estados de selección */
-    &:not(.is-disabled):not(.is-unavailable) {
-        @apply text-gray-900 hover:bg-gray-100;
-    }
-
     &.date-range-start,
     &.date-range-end {
-      @apply bg-pink-600 text-white hover:bg-pink-700; /* Añadido hover para mantener coherencia */
+      @apply bg-pink-600 text-white;
     }
     
     &.date-range-start {
@@ -64,19 +60,14 @@
       @apply bg-pink-50 text-pink-700;
     }
     
+    /* Estado normal */
+    &:not(.is-disabled):not(.is-unavailable) {
+      @apply text-gray-900 hover:bg-gray-100;
+    }
+    
     /* Indicador de hoy */
-    &:not(.is-disabled):not(.is-unavailable).today-indicator {
+    &.today-indicator {
       @apply font-extrabold border border-pink-500;
     }
   }
-}
-
-/* ===== COMPONENTES DE VISTAS PÚBLICAS ===== */
-@layer components {
-    /* Nueva clase para la imagen de la tarjeta en welcome.blade.php */
-    .card-main-image {
-        /* Asegura que la imagen no se corte (object-contain) y centra el contenido. */
-        /* Si quieres que se CORTE, usa object-cover */
-        @apply w-full h-48 object-contain bg-gray-200 p-2; 
-    }
 }

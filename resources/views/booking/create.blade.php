@@ -13,12 +13,16 @@
 
         {{-- Botón de Volver --}}
         <div class="mb-6">
-            <a href="{{ url()->previous() }}" 
+            {{--
+              CAMBIO 1: 
+              Cambiado de url()->previous() a la ruta de detalle de la autocaravana
+            --}}
+            <a href="{{ route('campervan.show', $campervan) }}" 
                class="inline-flex items-center text-pink-600 hover:text-pink-700 font-medium transition duration-300">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Volver atrás
+                Volver al detalle
             </a>
         </div>
 
@@ -47,11 +51,11 @@
                     </div>
                     <div class="py-3 flex justify-between">
                         <dt class="text-gray-500">Precio por noche</dt>
-                        <dd class="font-medium text-gray-900">{{ $campervan->price_per_night }}€</dd>
+                        <dd class="font-medium text-gray-900">{{ number_format($campervan->price_per_night, 2) }}€</dd>
                     </div>
                     <div class="py-3 flex justify-between">
                         <dt class="text-gray-500 font-bold">Total a pagar</dt>
-                        <dd class="font-extrabold text-2xl text-pink-600">{{ $total_price }}€</dd>
+                        <dd class="font-extrabold text-2xl text-pink-600">{{ number_format($total_price, 2) }}€</dd>
                     </div>
                 </dl>
             </div>
@@ -110,10 +114,6 @@
 
                     {{-- Botones --}}
                     <div class="pt-4 flex gap-4">
-                        <a href="{{ url()->previous() }}" 
-                           class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 text-center">
-                            Volver
-                        </a>
                         <button type="submit"
                             class="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300">
                             Confirmar Reserva

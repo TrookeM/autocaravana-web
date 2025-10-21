@@ -6,11 +6,14 @@ use App\Models\Booking;
 use App\Models\Campervan;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Mail\BookingConfirmed; // 1. Importar la clase del Mail
+use Illuminate\Support\Facades\Mail; // 2. Importar la fachada de Mail
 
 class BookingController extends Controller
 {
     public function create(Request $request)
     {
+        // ... (tu código 'create' no cambia)
         // Validar parámetros de la URL
         $request->validate([
             'campervan_id' => 'required|exists:campervans,id',
@@ -47,15 +50,15 @@ class BookingController extends Controller
             'total_price' => 'required|numeric|min:0',
         ]);
 
-        // Verificar disponibilidad antes de crear la reserva
+        // ... (tu código de verificación de disponibilidad no cambia)
         $existingBooking = Booking::where('campervan_id', $validated['campervan_id'])
             ->where(function ($query) use ($validated) {
                 $query->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
-                      ->orWhereBetween('end_date', [$validated['start_date'], $validated['end_date']])
-                      ->orWhere(function ($query) use ($validated) {
-                          $query->where('start_date', '<=', $validated['start_date'])
-                                ->where('end_date', '>=', $validated['end_date']);
-                      });
+                    ->orWhereBetween('end_date', [$validated['start_date'], $validated['end_date']])
+                    ->orWhere(function ($query) use ($validated) {
+                        $query->where('start_date', '<=', $validated['start_date'])
+                            ->where('end_date', '>=', $validated['end_date']);
+                    });
             })
             ->where('status', '!=', 'cancelled')
             ->first();
@@ -66,6 +69,7 @@ class BookingController extends Controller
             ])->withInput();
         }
 
+
         // Crear la reserva
         $booking = Booking::create([
             'campervan_id' => $validated['campervan_id'],
@@ -75,8 +79,17 @@ class BookingController extends Controller
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'total_price' => $validated['total_price'],
-            'status' => 'confirmed',
+            'status' => 'confirmed', // Asumimos 'confirmed' por ahora
         ]);
+
+        // --- 3. ENVIAR EL EMAIL DE CONFIRMACIÓN ---
+        try {
+            Mail::to($booking->customer_email)->send(new BookingConfirmed($booking));
+        } catch (\Exception $e) {
+            // Opcional: Registrar el error si el email falla, pero no detener al usuario
+            // \Log::error('Fallo al enviar email de confirmación: ' . $e->getMessage());
+        }
+        // ----------------------------------------
 
         // Redirigir a una página de confirmación
         return redirect()->route('booking.confirmation', $booking->id)
@@ -85,6 +98,7 @@ class BookingController extends Controller
 
     public function confirmation($id)
     {
+        // ... (tu código 'confirmation' no cambia)
         $booking = Booking::with('campervan')->findOrFail($id);
         
         return view('booking.confirmation', compact('booking'));
