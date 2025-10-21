@@ -1,11 +1,73 @@
 @import 'tailwindcss';
 
+/* Keep your custom @source directives */
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== COMPONENTES DEL CALENDARIO ===== */
+@layer components {
+  .calendar-grid {
+    @apply grid grid-cols-7 gap-1;
+  }
+
+  .day-header {
+    @apply text-center text-sm font-medium text-gray-700 py-2;
+  }
+
+  .day-cell {
+    @apply relative p-2 text-center text-sm cursor-pointer transition-all duration-200 rounded-lg;
+    
+    /* Estados base */
+    &.is-disabled {
+      @apply text-gray-400 cursor-not-allowed bg-gray-50;
+    }
+    
+    &.is-unavailable {
+      @apply text-red-400 cursor-not-allowed bg-red-50 line-through;
+    }
+    
+    /* Estados de selección */
+    &.date-range-start,
+    &.date-range-end {
+      @apply bg-pink-600 text-white;
+    }
+    
+    &.date-range-start {
+      @apply rounded-l-lg rounded-r-none;
+    }
+    
+    &.date-range-end {
+      @apply rounded-r-lg rounded-l-none;
+    }
+    
+    /* Rango de 1 noche (mismo día) */
+    &.date-range-start.date-range-end {
+      @apply rounded-lg;
+    }
+    
+    &.date-in-range {
+      @apply bg-pink-100 text-pink-900 rounded-none;
+    }
+    
+    /* Hover states */
+    &.hover-in-range {
+      @apply bg-pink-50 text-pink-700;
+    }
+    
+    /* Estado normal */
+    &:not(.is-disabled):not(.is-unavailable) {
+      @apply text-gray-900 hover:bg-gray-100;
+    }
+    
+    /* Indicador de hoy */
+    &.today-indicator {
+      @apply font-extrabold border border-pink-500;
+    }
+  }
 }

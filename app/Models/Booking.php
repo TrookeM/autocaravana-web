@@ -10,7 +10,6 @@ class Booking extends Model
 {
     use HasFactory;
 
-    // Añadimos los campos que se pueden rellenar
     protected $fillable = [
         'campervan_id',
         'customer_name',
@@ -23,8 +22,14 @@ class Booking extends Model
     ];
 
     /**
-     * Una reserva pertenece a una autocaravana.
+     * Define los tipos de datos de los atributos.
+     * Esto asegura que 'start_date' y 'end_date' son objetos Carbon.
      */
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+    ];
+
     public function campervan()
     {
         return $this->belongsTo(Campervan::class);
