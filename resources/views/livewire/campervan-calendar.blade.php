@@ -1,5 +1,4 @@
 <div class="bg-white p-6 rounded-xl shadow-2xl relative"
-    wire:key="calendar-main-{{ $timestamp }}"
     x-data="calendar({ 
         unavailableDates: {{ $unavailableDatesJson }}, 
         campervanId: {{ $campervan->id }}, 
