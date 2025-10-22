@@ -1,9 +1,10 @@
 FROM php:8.3-apache
 
-# Instalar dependencias del sistema para PostgreSQL
+# Instalar todas las dependencias del sistema necesarias
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     postgresql-client \
+    libonig-dev \
     && docker-php-ext-install pdo pdo_pgsql mbstring
 
 RUN a2enmod rewrite
