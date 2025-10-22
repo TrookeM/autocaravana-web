@@ -1,9 +1,10 @@
 FROM php:8.2-apache
 
-# Instalar dependencias
+# Instalar dependencias COMPLETAS
 RUN apt-get update && apt-get install -y \
     libpng-dev libonig-dev libxml2-dev zip unzip libpq-dev git \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
+    libicu-dev libzip-dev \
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd intl zip
 
 # Habilitar mod_rewrite
 RUN a2enmod rewrite
@@ -39,5 +40,5 @@ RUN php artisan config:cache
 RUN php artisan route:cache
 RUN php artisan view:cache
 
-# Comandos de inicio (sin migraciones por ahora)
+# Comandos de inicio
 CMD ["sh", "-c", "php artisan storage:link && apache2-foreground"]
