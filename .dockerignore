@@ -4,8 +4,9 @@ npm-debug.log
 .github/
 .env
 .idea
-.gitignore
-README.md
 docker-compose.yml
 *.log
 *.sqlite
+tests/
+coverage/
+.sass-cache/
