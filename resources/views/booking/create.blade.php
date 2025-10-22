@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,37 +73,65 @@
                     <input type="hidden" name="end_date" value="{{ $end_date }}">
                     <input type="hidden" name="total_price" value="{{ $total_price }}">
 
-                    <div>
-                        <label for="customer_name" class="form-label">Nombre Completo *</label>
-                        <input type="text" name="customer_name" id="customer_name" required
-                            value="{{ old('customer_name') }}" class="form-input">
-                        @error('customer_name')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <div class="space-y-6">
+                        <div class="relative">
+                            <input type="text" name="customer_name" id="customer_name" required
+                                value="{{ old('customer_name') }}"
+                                class="peer form-input-modern pt-6 pb-2 px-4"
+                                placeholder=" ">
+                            <label for="customer_name" class="form-label-modern">
+                                Nombre Completo <span class="text-red-500">*</span>
+                            </label>
+                            @error('customer_name')
+                            <p class="text-red-500 text-xs mt-2 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </div>
 
-                    <div>
-                        <label for="customer_email" class="form-label">Email *</label>
-                        <input type="email" name="customer_email" id="customer_email" required
-                            value="{{ old('customer_email') }}" class="form-input">
-                        @error('customer_email')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                        <div class="relative">
+                            <input type="email" name="customer_email" id="customer_email" required
+                                value="{{ old('customer_email') }}"
+                                class="peer form-input-modern pt-6 pb-2 px-4"
+                                placeholder=" ">
+                            <label for="customer_email" class="form-label-modern">
+                                Email <span class="text-red-500">*</span>
+                            </label>
+                            @error('customer_email')
+                            <p class="text-red-500 text-xs mt-2 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </div>
 
-                    {{-- CAMPO QUE FALTABA --}}
-                    <div>
-                        <label for="customer_phone" class="form-label">Teléfono *</label>
-                        <input type="tel" name="customer_phone" id="customer_phone" required
-                            value="{{ old('customer_phone') }}" class="form-input">
-                        @error('customer_phone')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <div class="relative">
+                            <input type="tel" name="customer_phone" id="customer_phone" required
+                                value="{{ old('customer_phone') }}"
+                                class="peer form-input-modern pt-6 pb-2 px-4"
+                                placeholder=" ">
+                            <label for="customer_phone" class="form-label-modern">
+                                Teléfono <span class="text-red-500">*</span>
+                            </label>
+                            @error('customer_phone')
+                            <p class="text-red-500 text-xs mt-2 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </div>
                     </div>
 
                     {{-- Botones --}}
                     <div class="pt-4">
-                        <button type="submit" class="btn-primary w-full">
+                        <button type="submit" class="btn-primary w-full cursor-pointer">
                             Confirmar Reserva
                         </button>
                     </div>
@@ -111,4 +140,5 @@
         </div>
     </div>
 </body>
+
 </html>

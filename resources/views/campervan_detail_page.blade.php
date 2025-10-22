@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,18 +26,18 @@
 
             @php
             $images = array_merge(
-                $campervan->main_image_path ? [$campervan->main_image_path] : [],
-                $campervan->secondary_images ?? [] 
+            $campervan->main_image_path ? [$campervan->main_image_path] : [],
+            $campervan->secondary_images ?? []
             );
-            
+
             $cleanedImages = array_map(function($path) {
-                return str_replace('\\', '/', $path);
+            return str_replace('\\', '/', $path);
             }, $images);
 
             if (empty($cleanedImages)) {
-                $cleanedImages[] = 'placeholder';
+            $cleanedImages[] = 'placeholder';
             }
-            
+
             $storageUrl = asset('storage') . '/';
             @endphp
 
@@ -51,9 +52,9 @@
                     nextImage() {
                         this.currentImage = (this.currentImage + 1) % this.imageCount;
                     }
-                }" 
-                class="mb-8 relative"> 
-                
+                }"
+                class="mb-8 relative">
+
                 {{-- Imagen Principal --}}
                 <div class="gallery-main">
                     <template x-for="(image, index) in images" :key="index">
@@ -71,14 +72,14 @@
 
                 {{-- Botones de Navegación --}}
                 <button x-show="imageCount > 1" @click="prevImage()"
-                        class="gallery-nav-btn left-4" aria-label="Anterior">
+                    class="gallery-nav-btn left-4 cursor-pointer" aria-label="Anterior">
                     <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </button>
 
                 <button x-show="imageCount > 1" @click="nextImage()"
-                        class="gallery-nav-btn right-4" aria-label="Siguiente">
+                    class="gallery-nav-btn right-4 cursor-pointer" aria-label="Siguiente">
                     <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -114,4 +115,5 @@
 
     @livewireScripts
 </body>
+
 </html>

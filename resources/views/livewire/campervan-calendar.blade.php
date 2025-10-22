@@ -6,7 +6,7 @@
     })">
 
     {{-- Información de reserva --}}
-    <div class="mb-6 p-4 border rounded-xl bg-emerald-50 border-emerald-200" wire:ignore> 
+    <div class="mb-6 p-4 border rounded-xl bg-emerald-50 border-emerald-200" wire:ignore>
         <div class="flex justify-between items-center text-sm font-semibold mb-2">
             <span class="text-gray-600">Noches seleccionadas:</span>
             <span class="text-emerald-600" x-text="nightsCount">0</span>
@@ -41,7 +41,7 @@
     <div class="calendar-navigation">
         <button wire:click="previousMonth"
             @if(!$canGoBack) disabled @endif
-            class="nav-button"
+            class="nav-button @if($canGoBack) cursor-pointer @else cursor-not-allowed @endif"
             aria-label="Mes anterior">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -53,7 +53,7 @@
         </div>
 
         <button wire:click="nextMonth"
-            class="nav-button"
+            class="nav-button cursor-pointer"
             aria-label="Mes siguiente">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -70,39 +70,39 @@
             </h3>
             <div class="calendar-grid" wire:key="current-month-{{ $currentYear }}-{{ $currentMonth }}-{{ $timestamp }}">
                 @foreach ($dayNames as $dayName)
-                    <div class="day-header">{{ $dayName }}</div>
+                <div class="day-header">{{ $dayName }}</div>
                 @endforeach
 
                 @foreach ($currentDates as $date)
-                    @if ($date['date'] === null)
-                        <div></div>
-                    @else
-                        @php
-                            $dateString = $date['date'];
-                            $baseClasses = 'day-cell';
-                            
-                            if ($date['is_disabled']) {
-                                $baseClasses .= ' is-disabled';
-                            }
-                            if ($date['is_unavailable']) {
-                                $baseClasses .= ' is-unavailable';
-                            }
-                            if ($date['is_today'] && !$date['is_disabled']) {
-                                $baseClasses .= ' today-indicator';
-                            }
-                        @endphp
-                        
-                        <div class="{{ $baseClasses }}"
-                            wire:key="day-{{ $dateString }}-current-{{ $timestamp }}"
-                            @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
-                            :class="{
+                @if ($date['date'] === null)
+                <div></div>
+                @else
+                @php
+                $dateString = $date['date'];
+                $baseClasses = 'day-cell';
+
+                if ($date['is_disabled']) {
+                $baseClasses .= ' is-disabled';
+                }
+                if ($date['is_unavailable']) {
+                $baseClasses .= ' is-unavailable';
+                }
+                if ($date['is_today'] && !$date['is_disabled']) {
+                $baseClasses .= ' today-indicator';
+                }
+                @endphp
+
+                <div class="{{ $baseClasses }}"
+                    wire:key="day-{{ $dateString }}-current-{{ $timestamp }}"
+                    @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
+                    :class="{
                                 'date-range-start': dates.checkIn === '{{ $dateString }}',
                                 'date-range-end': dates.checkOut === '{{ $dateString }}',
                                 'date-in-range': isDateInRange('{{ $dateString }}')
                             }">
-                            {{ $date['day_of_month'] }}
-                        </div>
-                    @endif
+                    {{ $date['day_of_month'] }}
+                </div>
+                @endif
                 @endforeach
             </div>
         </div>
@@ -114,39 +114,39 @@
             </h3>
             <div class="calendar-grid" wire:key="next-month-{{ $nextYear }}-{{ $nextMonth }}-{{ $timestamp }}">
                 @foreach ($dayNames as $dayName)
-                    <div class="day-header">{{ $dayName }}</div>
+                <div class="day-header">{{ $dayName }}</div>
                 @endforeach
 
                 @foreach ($nextDates as $date)
-                    @if ($date['date'] === null)
-                        <div></div>
-                    @else
-                        @php
-                            $dateString = $date['date'];
-                            $baseClasses = 'day-cell';
-                            
-                            if ($date['is_disabled']) {
-                                $baseClasses .= ' is-disabled';
-                            }
-                            if ($date['is_unavailable']) {
-                                $baseClasses .= ' is-unavailable';
-                            }
-                            if ($date['is_today'] && !$date['is_disabled']) {
-                                $baseClasses .= ' today-indicator';
-                            }
-                        @endphp
-                        
-                        <div class="{{ $baseClasses }}"
-                            wire:key="day-{{ $dateString }}-next-{{ $timestamp }}"
-                            @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
-                            :class="{
+                @if ($date['date'] === null)
+                <div></div>
+                @else
+                @php
+                $dateString = $date['date'];
+                $baseClasses = 'day-cell';
+
+                if ($date['is_disabled']) {
+                $baseClasses .= ' is-disabled';
+                }
+                if ($date['is_unavailable']) {
+                $baseClasses .= ' is-unavailable';
+                }
+                if ($date['is_today'] && !$date['is_disabled']) {
+                $baseClasses .= ' today-indicator';
+                }
+                @endphp
+
+                <div class="{{ $baseClasses }}"
+                    wire:key="day-{{ $dateString }}-next-{{ $timestamp }}"
+                    @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
+                    :class="{
                                 'date-range-start': dates.checkIn === '{{ $dateString }}',
                                 'date-range-end': dates.checkOut === '{{ $dateString }}',
                                 'date-in-range': isDateInRange('{{ $dateString }}')
                             }">
-                            {{ $date['day_of_month'] }}
-                        </div>
-                    @endif
+                    {{ $date['day_of_month'] }}
+                </div>
+                @endif
                 @endforeach
             </div>
         </div>
@@ -157,7 +157,10 @@
         <button @click="submitBooking"
             :disabled="!isRangeValid || isSubmitting"
             class="btn-full"
-            :class="{'bg-emerald-500 hover:bg-emerald-600': isRangeValid, 'bg-gray-400': !isRangeValid}">
+            :class="{
+                'bg-emerald-500 hover:bg-emerald-600 cursor-pointer': isRangeValid && !isSubmitting,
+                'bg-gray-400 cursor-not-allowed': !isRangeValid || isSubmitting
+            }">
             <span x-show="!isSubmitting">Reservar ahora</span>
             <span x-show="isSubmitting">Redirigiendo...</span>
         </button>
