@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: autocaravanas-app
+    env: docker
+    plan: free
+    branch: main
+    
+  - type: pgsql
+    name: autocaravanas-db
+    plan: free
+    ipAllowList: []
