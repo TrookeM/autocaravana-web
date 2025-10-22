@@ -1,17 +1,83 @@
 @import 'tailwindcss';
 
-/* Keep your custom @source directives */
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* ===== VARIABLES Y BASE ===== */
+:root {
+  --primary-color: #10b981; /* emerald-500 */
+  --primary-dark: #059669;  /* emerald-600 */
+  --primary-light: #d1fae5; /* emerald-100 */
+  --accent-color: #34d399;  /* green-400 */
+}
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ===== COMPONENTES DEL CALENDARIO ===== */
+/* ===== COMPONENTES COMUNES ===== */
 @layer components {
+  
+  /* BOTONES */
+  .btn-primary {
+    @apply bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
+  }
+  
+  .btn-secondary {
+    @apply bg-green-400 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
+  }
+
+  .btn-full {
+    @apply w-full text-white font-bold py-3 rounded-xl transition duration-300 shadow-lg;
+  }
+
+  /* TARJETAS */
+  .card {
+    @apply bg-white rounded-xl shadow-lg border-t-4 border-emerald-500 p-6;
+  }
+  
+  .card-feature {
+    @apply flex flex-col items-center text-center p-6;
+  }
+
+  .card-booking {
+    @apply bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500 text-left mb-8;
+  }
+
+  /* ICONOS */
+  .icon-circle {
+    @apply bg-emerald-100 text-emerald-600 p-6 rounded-full mb-4;
+  }
+
+  .icon-success {
+    @apply w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6;
+  }
+
+  /* SECCIONES */
+  .info-section {
+    @apply p-4 bg-blue-50 rounded-lg text-sm text-blue-700;
+  }
+
+  .warning-section {
+    @apply bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded;
+  }
+
+  /* ENLACES */
+  .link-primary {
+    @apply inline-flex items-center text-emerald-500 hover:text-emerald-600 font-medium transition duration-300;
+  }
+
+  /* FORMULARIOS */
+  .form-input {
+    @apply mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .form-group {
+    @apply space-y-6;
+  }
+
+  /* CALENDARIO */
+  .calendar-container {
+    @apply bg-white p-6 rounded-xl shadow-2xl relative;
+  }
+
   .calendar-grid {
     @apply grid grid-cols-7 gap-1;
   }
@@ -23,7 +89,6 @@
   .day-cell {
     @apply relative p-2 text-center text-sm cursor-pointer transition-all duration-200 rounded-lg;
     
-    /* Estados base */
     &.is-disabled {
       @apply text-gray-400 cursor-not-allowed bg-gray-50;
     }
@@ -32,10 +97,13 @@
       @apply text-red-400 cursor-not-allowed bg-red-50 line-through;
     }
     
-    /* Estados de selección */
+    &:not(.is-disabled):not(.is-unavailable) {
+        @apply text-gray-900 hover:bg-gray-100;
+    }
+
     &.date-range-start,
     &.date-range-end {
-      @apply bg-pink-600 text-white;
+      @apply bg-emerald-600 text-white hover:bg-emerald-700;
     }
     
     &.date-range-start {
@@ -46,28 +114,119 @@
       @apply rounded-r-lg rounded-l-none;
     }
     
-    /* Rango de 1 noche (mismo día) */
     &.date-range-start.date-range-end {
       @apply rounded-lg;
     }
     
     &.date-in-range {
-      @apply bg-pink-100 text-pink-900 rounded-none;
+      @apply bg-emerald-100 text-emerald-900 rounded-none;
     }
     
-    /* Hover states */
     &.hover-in-range {
-      @apply bg-pink-50 text-pink-700;
+      @apply bg-emerald-50 text-emerald-700;
     }
     
-    /* Estado normal */
-    &:not(.is-disabled):not(.is-unavailable) {
-      @apply text-gray-900 hover:bg-gray-100;
-    }
-    
-    /* Indicador de hoy */
     &.today-indicator {
-      @apply font-extrabold border border-pink-500;
+      @apply font-extrabold border border-emerald-500;
     }
+  }
+
+  /* GALERÍA */
+  .gallery-main {
+    @apply relative w-full h-96 rounded-2xl shadow-xl overflow-hidden mb-4;
+  }
+
+  .gallery-thumbnail {
+    @apply w-20 h-14 object-cover rounded-lg cursor-pointer transition duration-150;
+  }
+
+  .gallery-nav-btn {
+    @apply absolute top-[40%] transform -translate-y-1/2 p-3 bg-white/70 hover:bg-white rounded-full shadow-lg transition duration-200 z-10;
+  }
+
+  /* TARJETAS DE PRODUCTOS */
+  .product-card {
+    @apply bg-white rounded-lg shadow-lg overflow-hidden block hover:shadow-2xl transition duration-300 cursor-pointer;
+  }
+
+  .card-main-image {
+    @apply w-full h-48 object-contain bg-gray-200 p-2;
+  }
+
+  /* NAVEGACIÓN */
+  .nav-primary {
+    @apply bg-white shadow-md sticky top-0 z-50;
+  }
+
+  /* HÉROE */
+  .hero-section {
+    @apply relative bg-gray-800 text-white overflow-hidden;
+  }
+
+  /* RESUMEN DE RESERVA */
+  .booking-summary {
+    @apply p-6 bg-white rounded-xl shadow-lg border-t-4 border-emerald-500;
+  }
+
+  .summary-item {
+    @apply py-3 flex justify-between text-sm;
+  }
+
+  .summary-label {
+    @apply text-gray-500;
+  }
+
+  .summary-value {
+    @apply font-medium text-gray-900;
+  }
+
+  .total-price {
+    @apply font-extrabold text-2xl text-emerald-600;
+  }
+}
+
+/* Añadir estas clases al app.css existente */
+
+@layer components {
+  /* Estados de la galería */
+  .gallery-thumbnail.active {
+    @apply ring-2 ring-emerald-500 ring-offset-2 opacity-100;
+  }
+  
+  .gallery-thumbnail.inactive {
+    @apply opacity-70;
+  }
+
+  /* Estados del calendario */
+  .calendar-navigation {
+    @apply flex justify-between items-center mb-6;
+  }
+  
+  .nav-button {
+    @apply p-2 rounded-full text-gray-600 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Estados de fecha */
+  .date-selected {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700;
+  }
+  
+  .date-in-range-preview {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+}
+
+/* ===== UTILIDADES PERSONALIZADAS ===== */
+@layer utilities {
+  .text-primary { color: var(--primary-color); }
+  .bg-primary { background-color: var(--primary-color); }
+  .border-primary { border-color: var(--primary-color); }
+  
+  .container-main {
+    @apply container mx-auto px-4 py-12;
+  }
+  
+  .grid-main {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-12;
   }
 }
