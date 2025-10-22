@@ -2,17 +2,36 @@
 // routes/web.php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController; // Asumimos que existe
+use App\Http\Controllers\HomeController;
 use App\Models\Campervan;
-use App\Http\Controllers\BookingController; // O el controlador que uses
-use App\Livewire\CampervanCalendar; // Importa el componente Livewire
+use App\Http\Controllers\BookingController;
+use App\Livewire\CampervanCalendar;
+
+// Health check route (add this first)
+Route::get('/health', function () {
+    try {
+        // Test database connection
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        
+        return response()->json([
+            'status' => 'ok',
+            'database' => 'connected',
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'timestamp' => now()->toISOString()
+        ], 500);
+    }
+});
 
 // Ruta de inicio (Homepage)
 Route::get('/', [HomeController::class, 'index']);
 
 // Ruta de la página de detalle que usa el modelo Campervan
 Route::get('/caravanas/{campervan}', function (Campervan $campervan) {
-    // Aquí es donde usas la vista que creamos antes
     return view('campervan_detail_page', [
         'campervan' => $campervan,
     ]);
