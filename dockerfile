@@ -1,13 +1,17 @@
 FROM php:8.3-apache
 
-RUN docker-php-ext-install pdo pdo_pgsql mbstring
+# Instalar dependencias del sistema para PostgreSQL
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    postgresql-client \
+    && docker-php-ext-install pdo pdo_pgsql mbstring
+
 RUN a2enmod rewrite
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
+# Copiar el código de la aplicación
 COPY . /var/www/html/
-RUN chmod -R 755 /var/www/html/storage
 
-WORKDIR /var/www/html
-RUN composer install --no-dev --optimize-autoloader
-
-CMD ["apache2-foreground"]
+# Establecer permisos
+RUN chown -R www-data:www-data /var/www/html/storage
+RUN chown -R www-data:www-data /var/www/html/bootstrap/cache
