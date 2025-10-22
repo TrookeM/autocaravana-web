@@ -1,27 +1,27 @@
 <div class="calendar-container w-full"
-     x-data="calendar({ 
+    x-data="calendar({ 
          unavailableDates: {{ $unavailableDatesJson }}, 
          campervanId: {{ $campervan->id }}, 
          pricePerNight: {{ $campervan->price_per_night }} 
      })">
 
-    {{-- Información de reserva (Sin cambios significativos) --}}
+    {{-- Información de reserva --}}
     <div class="mb-6 p-4 border rounded-xl bg-emerald-50 border-emerald-200" wire:ignore>
         <div class="flex justify-between items-center text-sm font-semibold mb-2">
-            <span class="text-gray-600">Noches seleccionadas:</span>
+            <span class="text-gray-600">Fechas seleccionadas:</span>
             <span class="text-emerald-600" x-text="nightsCount">0</span>
         </div>
         <div class="grid grid-cols-2 gap-4">
             <div class="p-3 border rounded-lg bg-white shadow-sm transition duration-150"
                 :class="{'border-emerald-500 ring-1 ring-emerald-500': dates.checkIn, 'border-gray-300': !dates.checkIn}">
-                <label class="block text-xs font-bold text-gray-500 uppercase">Check-in</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase">entrada</label>
                 <p class="mt-1 text-lg font-bold text-gray-800"
                     x-text="dates.checkIn ? formatDate(dates.checkIn) : 'Elige fecha'"></p>
                 <input type="hidden" name="check_in" :value="dates.checkIn">
             </div>
             <div class="p-3 border rounded-lg bg-white shadow-sm transition duration-150"
                 :class="{'border-emerald-500 ring-1 ring-emerald-500': dates.checkOut, 'border-gray-300': !dates.checkOut}">
-                <label class="block text-xs font-bold text-gray-500 uppercase">Check-out</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase">salida</label>
                 <p class="mt-1 text-lg font-bold text-gray-800"
                     x-text="dates.checkOut ? formatDate(dates.checkOut) : 'Elige fecha'"></p>
                 <input type="hidden" name="check_out" :value="dates.checkOut">
@@ -37,7 +37,12 @@
         </p>
     </div>
 
-    {{-- Navegación (Título dinámico) --}}
+    {{-- Nota de aclaración del precio --}}
+    <p class="mt-4 text-sm text-gray-500 text-center">
+        El precio mostrado es por noche 
+    </p>
+
+    {{-- Navegación (Título dinámico y botones) --}}
     <div class="calendar-navigation flex justify-between items-center mb-4">
         <button wire:click="previousMonth"
             @if(!$canGoBack) disabled @endif
@@ -68,15 +73,17 @@
         </button>
     </div>
 
-    {{-- Calendarios (MODIFICADO: AÑADIDO lg:grid-cols-1 para anular el grid de dos columnas en pantalla completa) --}}
+    {{-- Calendarios (grid de 1 columna en LG+) --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 md:gap-8 lg:gap-0">
-        
+
         {{-- Mes Actual --}}
         <div>
-            <h3 class="text-base font-bold text-gray-800 text-center mb-3 capitalize">
+            {{-- Título del Mes Actual --}}
+            {{-- AÑADIDA LA CLASE lg:hidden para que desaparezca en vista de escritorio --}}
+            <h3 class="text-base font-bold text-gray-800 text-center mb-3 capitalize lg:hidden">
                 {{ $currentMonthName }} {{ $currentYear }}
             </h3>
-            
+
             <div class="calendar-grid grid grid-cols-7 gap-1" wire:key="current-month-{{ $currentYear }}-{{ $currentMonth }}-{{ $timestamp }}">
                 @foreach ($dayNames as $dayName)
                 <div class="day-header text-xs font-semibold text-gray-500 text-center">{{ $dayName }}</div>
@@ -88,54 +95,70 @@
                 @else
                 @php
                 $dateString = $date['date'];
-                $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
+                $price = round($date['price']);
 
-                if ($date['is_disabled']) {
+                // Lógica de color dinámica (UMBRALES: 150€ NARANJA, 180€ ROJO)
+                $priceTextColor = 'text-emerald-600';
+                $baseBgColor = 'hover:bg-emerald-100';
+
+                if ($price >= 160 && $price < 180) {
+                    $priceTextColor='text-orange-600' ;
+                    $baseBgColor='hover:bg-orange-100' ;
+                    } elseif ($price>= 180) {
+                    $priceTextColor = 'text-red-600';
+                    $baseBgColor = 'hover:bg-red-100';
+                    }
+
+                    $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
+
+                    if ($date['is_disabled']) {
                     $baseClasses .= ' text-gray-300 bg-gray-100 cursor-not-allowed is-disabled';
-                } else {
-                    $baseClasses .= ' hover:bg-emerald-100 cursor-pointer';
-                }
-                if ($date['is_unavailable']) {
+                    } else {
+                    $baseClasses .= ' ' . $baseBgColor . ' cursor-pointer';
+                    }
+                    if ($date['is_unavailable']) {
+                    $baseClasses = str_replace($baseBgColor, '', $baseClasses); // Asegurar que no aplique hover cálido
                     $baseClasses .= ' is-unavailable bg-red-100 text-red-600 hover:bg-red-200/50 cursor-not-allowed';
-                }
-                if ($date['is_today'] && !$date['is_disabled']) {
+                    }
+                    if ($date['is_today'] && !$date['is_disabled']) {
                     $baseClasses .= ' today-indicator border-emerald-500';
-                }
-                @endphp
+                    }
+                    @endphp
 
-                <div class="{{ $baseClasses }}"
-                    wire:key="day-{{ $dateString }}-current-{{ $timestamp }}"
-                    @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
-                    :class="{
+                    <div class="{{ $baseClasses }}"
+                        wire:key="day-{{ $dateString }}-current-{{ $timestamp }}"
+                        @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
+                        :class="{
                         'date-range-start bg-emerald-500 text-white font-bold hover:bg-emerald-600': dates.checkIn === '{{ $dateString }}',
                         'date-range-end bg-emerald-500 text-white font-bold hover:bg-emerald-600': dates.checkOut === '{{ $dateString }}',
                         'date-in-range bg-emerald-200/50 text-gray-800 rounded-none': isDateInRange('{{ $dateString }}'),
                         '!bg-red-500 !text-white !font-bold !cursor-not-allowed': dates.checkOut === '{{ $dateString }}' && errorMessage.length > 0
                     }">
-                    
-                    <span class="font-semibold text-base">{{ $date['day_of_month'] }}</span>
-                    
-                    @if (!$date['is_disabled'] && !$date['is_unavailable'])
-                        <span class="text-xs font-bold text-emerald-600 leading-none"
+
+                        <span class="font-semibold text-base">{{ $date['day_of_month'] }}</span>
+
+                        @if (!$date['is_disabled'] && !$date['is_unavailable'])
+                        {{-- APLICACIÓN DEL COLOR DINÁMICO --}}
+                        <span class="text-xs font-bold leading-none {{ $priceTextColor }}"
                             :class="{ 
                                 'text-white': dates.checkIn === '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}' || isDateInRange('{{ $dateString }}') 
                             }"
                             x-show="dates.checkIn !== '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}' || isDateInRange('{{ $dateString }}')">
                             {{ round($date['price']) }}€
                         </span>
+                        @endif
+                    </div>
                     @endif
-                </div>
-                @endif
-                @endforeach
+                    @endforeach
             </div>
         </div>
 
-        {{-- Mes Siguiente (CLAVE: Visible SÓLO en MD, oculto en LG+) --}}
+        {{-- Mes Siguiente (Visible SÓLO en MD, oculto en LG+) --}}
         <div class="hidden md:block lg:hidden">
             <h3 class="text-base font-bold text-gray-800 text-center mb-3 capitalize">
                 {{ $nextMonthName }} {{ $nextYear }}
             </h3>
-            
+
             <div class="calendar-grid grid grid-cols-7 gap-1" wire:key="next-month-{{ $nextYear }}-{{ $nextMonth }}-{{ $timestamp }}">
                 @foreach ($dayNames as $dayName)
                 <div class="day-header text-xs font-semibold text-gray-500 text-center">{{ $dayName }}</div>
@@ -147,44 +170,60 @@
                 @else
                 @php
                 $dateString = $date['date'];
-                $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
+                $price = round($date['price']);
 
-                if ($date['is_disabled']) {
+                // Lógica de color dinámica (UMBRALES: 150€ NARANJA, 180€ ROJO)
+                $priceTextColor = 'text-emerald-600';
+                $baseBgColor = 'hover:bg-emerald-100';
+
+                if ($price >= 160 && $price < 180) {
+                    $priceTextColor='text-orange-600' ;
+                    $baseBgColor='hover:bg-orange-100' ;
+                    } elseif ($price>= 180) {
+                    $priceTextColor = 'text-red-600';
+                    $baseBgColor = 'hover:bg-red-100';
+                    }
+
+                    $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
+
+                    if ($date['is_disabled']) {
                     $baseClasses .= ' text-gray-300 bg-gray-100 cursor-not-allowed is-disabled';
-                } else {
-                    $baseClasses .= ' hover:bg-emerald-100 cursor-pointer';
-                }
-                if ($date['is_unavailable']) {
+                    } else {
+                    $baseClasses .= ' ' . $baseBgColor . ' cursor-pointer';
+                    }
+                    if ($date['is_unavailable']) {
+                    $baseClasses = str_replace($baseBgColor, '', $baseClasses); // Asegurar que no aplique hover cálido
                     $baseClasses .= ' is-unavailable bg-red-100 text-red-600 hover:bg-red-200/50 cursor-not-allowed';
-                }
-                if ($date['is_today'] && !$date['is_disabled']) {
+                    }
+                    if ($date['is_today'] && !$date['is_disabled']) {
                     $baseClasses .= ' today-indicator border-emerald-500';
-                }
-                @endphp
+                    }
+                    @endphp
 
-                <div class="{{ $baseClasses }}"
-                    wire:key="day-{{ $dateString }}-next-{{ $timestamp }}"
-                    @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
-                    :class="{
+                    <div class="{{ $baseClasses }}"
+                        wire:key="day-{{ $dateString }}-next-{{ $timestamp }}"
+                        @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
+                        :class="{
                         'date-range-start bg-emerald-500 text-white font-bold hover:bg-emerald-600': dates.checkIn === '{{ $dateString }}',
                         'date-range-end bg-emerald-500 text-white font-bold hover:bg-emerald-600': dates.checkOut === '{{ $dateString }}',
                         'date-in-range bg-emerald-200/50 text-gray-800 rounded-none': isDateInRange('{{ $dateString }}'),
                         '!bg-red-500 !text-white !font-bold !cursor-not-allowed': dates.checkOut === '{{ $dateString }}' && errorMessage.length > 0
                     }">
-                    <span class="font-semibold text-base">{{ $date['day_of_month'] }}</span>
-                    
-                    @if (!$date['is_disabled'] && !$date['is_unavailable'])
-                        <span class="text-xs font-bold text-emerald-600 leading-none"
+                        <span class="font-semibold text-base">{{ $date['day_of_month'] }}</span>
+
+                        @if (!$date['is_disabled'] && !$date['is_unavailable'])
+                        {{-- APLICACIÓN DEL COLOR DINÁMICO --}}
+                        <span class="text-xs font-bold leading-none {{ $priceTextColor }}"
                             :class="{ 
                                 'text-white': dates.checkIn === '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}' || isDateInRange('{{ $dateString }}') 
                             }"
                             x-show="dates.checkIn !== '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}' || isDateInRange('{{ $dateString }}')">
                             {{ round($date['price']) }}€
                         </span>
+                        @endif
+                    </div>
                     @endif
-                </div>
-                @endif
-                @endforeach
+                    @endforeach
             </div>
         </div>
     </div>

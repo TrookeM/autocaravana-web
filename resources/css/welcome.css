@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply inline-block px-6 py-3 rounded-full text-white font-semibold transition shadow-md;
+  }
+  .btn-secondary {
+    @apply inline-block px-6 py-3 rounded-full font-semibold transition shadow-md;
+  }
+
+  .section {
+    @apply py-20;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-extrabold text-emerald-700;
+  }
+
+  .section-subtitle {
+    @apply text-gray-600 mt-2 text-lg;
+  }
+
+  .step-card {
+    @apply bg-emerald-50 rounded-xl shadow-md p-6 transition hover:shadow-lg hover:bg-emerald-100;
+  }
+
+  .step-icon {
+    @apply text-4xl text-emerald-600;
+  }
+
+  .product-card {
+    @apply bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition transform hover:scale-[1.02];
+  }
+
+  .product-image {
+    @apply w-full h-48 object-cover;
+  }
+
+  .advantage-card {
+    @apply bg-white rounded-xl shadow-md p-6 transition hover:shadow-lg hover:scale-105;
+  }
+
+  .icon-circle {
+    @apply text-4xl text-emerald-600 mb-2;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 1.2s ease-out forwards;
+}
+
