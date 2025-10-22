@@ -18,10 +18,17 @@ document.addEventListener('alpine:init', () => {
         },
         hoverDate: null,
         unavailableDates: new Set(unavailableDates),
-        pricePerNight: pricePerNight,
+        
+        // Mantener pricePerNight como base (aunque no se usa para el cálculo final)
+        pricePerNight: pricePerNight, 
+        
         campervanId: campervanId,
         errorMessage: '',
         isSubmitting: false,
+
+        // PROPIEDADES NUEVAS/MODIFICADAS
+        totalPrice: 0, // <-- Precio calculado por la API
+        csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
 
         // Propiedades calculadas
         get nightsCount() {
@@ -32,21 +39,60 @@ document.addEventListener('alpine:init', () => {
             return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         },
 
-        get totalPrice() {
-            return this.nightsCount * this.pricePerNight;
-        },
+        // El getter totalPrice ha sido ELIMINADO. Ahora es una propiedad dinámica.
 
         get isRangeValid() {
             return this.dates.checkIn && this.dates.checkOut && this.nightsCount >= 1 && !this.errorMessage;
         },
+        
+        // MÉTODO NUEVO: Llama al API para obtener el precio real
+        async fetchPrice() {
+            this.totalPrice = 0; // Resetear antes de la llamada
 
-        // Métodos simplificados
+            if (!this.dates.checkIn || !this.dates.checkOut || this.errorMessage) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/calculate-price', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': this.csrfToken,
+                    },
+                    body: JSON.stringify({
+                        campervan_id: this.campervanId,
+                        start_date: this.dates.checkIn,
+                        end_date: this.dates.checkOut
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.totalPrice = data.total_price;
+                } else {
+                    // Si el API devuelve un error (ej. validación), manejarlo
+                    this.errorMessage = 'Error al calcular el precio. Inténtelo de nuevo.';
+                    this.totalPrice = 0;
+                }
+
+            } catch (e) {
+                console.error('Error de conexión:', e);
+                this.errorMessage = 'Fallo en la conexión para calcular el precio.';
+                this.totalPrice = 0;
+            }
+        },
+
+
+        // MÉTODOS MODIFICADOS
         selectDate(date) {
             if (this.dates.checkIn && this.dates.checkOut) {
                 // Reset si ya hay un rango completo
                 this.dates.checkIn = date;
                 this.dates.checkOut = null;
                 this.errorMessage = '';
+                this.totalPrice = 0; // Resetear precio
                 return;
             }
 
@@ -61,11 +107,17 @@ document.addEventListener('alpine:init', () => {
             if (date > this.dates.checkIn) {
                 this.dates.checkOut = date;
                 this.validateRange();
+                
+                // Si el rango es válido, llamamos al API para el precio
+                if (this.isRangeValid) {
+                    this.fetchPrice();
+                }
             } else {
                 // Si selecciona una fecha anterior, la hace checkIn
                 this.dates.checkIn = date;
                 this.dates.checkOut = null;
                 this.errorMessage = '';
+                this.totalPrice = 0; // Resetear precio
             }
         },
 
@@ -80,6 +132,7 @@ document.addEventListener('alpine:init', () => {
             if (end <= start) {
                 this.errorMessage = 'La fecha de salida debe ser posterior a la de entrada';
                 this.dates.checkOut = null;
+                this.totalPrice = 0; // Resetear precio
                 return;
             }
 
@@ -91,10 +144,14 @@ document.addEventListener('alpine:init', () => {
                     this.errorMessage = 'Algunas fechas seleccionadas no están disponibles';
                     this.dates.checkIn = null;
                     this.dates.checkOut = null;
+                    this.totalPrice = 0; // Resetear precio
                     return;
                 }
                 current.setDate(current.getDate() + 1);
             }
+            
+            // Si la validación pasa y no hay errores, se podría llamar fetchPrice aquí también
+            // Pero es más limpio llamarlo solo una vez en selectDate para evitar llamadas duplicadas.
         },
 
         isDateInRange(date) {
@@ -118,7 +175,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         submitBooking() {
-            if (!this.isRangeValid || this.isSubmitting) return;
+            // Se añade la verificación de que el precio sea mayor que 0
+            if (!this.isRangeValid || this.isSubmitting || this.totalPrice <= 0) return; 
 
             this.isSubmitting = true;
 
@@ -126,7 +184,7 @@ document.addEventListener('alpine:init', () => {
                 campervan_id: this.campervanId,
                 start_date: this.dates.checkIn,
                 end_date: this.dates.checkOut,
-                total_price: this.totalPrice
+                total_price: this.totalPrice // <-- ¡Usamos el precio de la API!
             });
 
             // Redirigir después de un breve delay

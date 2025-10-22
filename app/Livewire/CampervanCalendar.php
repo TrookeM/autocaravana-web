@@ -7,6 +7,7 @@ use App\Models\Campervan;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use App\Services\PriceCalculatorService; // Importar el servicio
 
 class CampervanCalendar extends Component
 {
@@ -18,6 +19,14 @@ class CampervanCalendar extends Component
 
     // Para forzar re-renderizado completo
     public $timestamp;
+
+    // Inyectar el servicio
+    protected PriceCalculatorService $priceCalculator;
+
+    public function boot(PriceCalculatorService $priceCalculator)
+    {
+        $this->priceCalculator = $priceCalculator;
+    }
 
     public function mount(Campervan $campervan)
     {
@@ -107,6 +116,9 @@ class CampervanCalendar extends Component
 
             $isPast = $date->lt($today);
             $isUnavailable = isset($this->unavailableDates[$dateString]);
+            
+            // LÍNEA CLAVE AÑADIDA: Calcular el precio con las reglas
+            $price = $this->priceCalculator->getPriceForDate($this->campervan, $date);
 
             $days->push([
                 'date' => $dateString,
@@ -114,6 +126,7 @@ class CampervanCalendar extends Component
                 'is_today' => $date->isToday(),
                 'is_disabled' => $isPast || $isUnavailable,
                 'is_unavailable' => $isUnavailable,
+                'price' => $price, // <-- Nuevo campo con el precio real
             ]);
         }
 
