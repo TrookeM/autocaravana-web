@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nueva Solicitud de Contacto</title>
-    {{-- Estilos mínimos para compatibilidad con clientes de correo --}}
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
         .header { background-color: #f4f4f4; padding: 20px; text-align: center; }
-        .header h1 { margin: 0; color: #CC8400; /* Color Naranja/Dorado para distinguir de la confirmación */ }
+        .header h1 { margin: 0; color: #059669; /* Verde esmeralda como en confirmación */ }
         .content { padding: 30px; }
         .content p { line-height: 1.6; }
         .details { background-color: #fafafa; padding: 20px; border-radius: 5px; }
@@ -21,7 +20,7 @@
             display: inline-block;
             padding: 10px 20px;
             margin-top: 20px;
-            background-color: #059669; /* Verde Esmeralda */
+            background-color: #059669; /* Verde esmeralda */
             color: #ffffff !important;
             text-decoration: none;
             border-radius: 5px;
@@ -49,7 +48,7 @@
                 <tbody>
                     <tr>
                         <th>Nombre:</th>
-                        <td><strong>{{ $data['name'] }}</strong></td>
+                        <td>{{ $data['name'] }}</td>
                     </tr>
                     <tr>
                         <th>Email de Contacto:</th>
@@ -69,13 +68,10 @@
             
             <p style="margin-top: 25px;">Puedes responder directamente haciendo clic en el botón de abajo:</p>
 
-            {{-- Botón de Respuesta con Protocolo mailto --}}
             <a href="mailto:{{ $data['email'] }}?subject={{ rawurlencode('RE: Consulta sobre Campervan') }}" 
-               class="button" 
-               style="color: #ffffff !important; background-color: #059669; text-decoration: none;">
+               class="button">
                 Responder a {{ $data['name'] }}
             </a>
-            
         </div>
         <div class="footer">
             <p>&copy; {{ date('Y') }} Forester Campers. Este correo fue enviado desde la web.</p>
