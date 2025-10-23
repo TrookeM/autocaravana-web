@@ -18,6 +18,7 @@ class Campervan extends Model
         'name',
         'description',
         'price_per_night',
+        'allows_deposit',
         'is_visible',
         'main_image_path', 
         'secondary_images_json',
@@ -28,6 +29,7 @@ class Campervan extends Model
      */
     protected $casts = [
         'is_visible' => 'boolean',
+        'allows_deposit' => 'boolean',
         // El campo JSON se convierte automáticamente en un array/Collection de PHP
         'secondary_images_json' => 'array', 
     ];

@@ -11,7 +11,8 @@ use Carbon\Carbon;
 class PriceCalculationController extends Controller
 {
     /**
-     * Calcula el precio total de una reserva dado un rango de fechas y una autocaravana.
+     * Calcula el precio total, el monto de la señal y la cantidad restante de una reserva.
+     * Implementa lógica para RF6.1
      */
     public function calculate(Request $request, PriceCalculatorService $priceCalculator)
     {
@@ -29,10 +30,17 @@ class PriceCalculationController extends Controller
         // 2. Usar el servicio para obtener el precio final con reglas
         $totalPrice = $priceCalculator->calculateTotalPrice($campervan, $startDate, $endDate);
         
-        // 3. Devolver la respuesta JSON
+        // 3. Calcular la SEÑAL (Depósito) usando el nuevo método
+        $depositAmount = $priceCalculator->calculateDepositAmount($totalPrice);
+        
+        // 4. Calcular el RESTANTE a pagar
+        $remainingAmount = $totalPrice - $depositAmount;
+        
+        // 5. Devolver la respuesta JSON con la división de pagos
         return response()->json([
             'total_price' => $totalPrice,
-            // (Opcional) Puedes devolver el precio por noche si lo necesitas en el front-end
+            'deposit_amount' => $depositAmount,       // <- Monto de la señal (30%)
+            'remaining_amount' => $remainingAmount,   // <- Monto restante
         ]);
     }
 }

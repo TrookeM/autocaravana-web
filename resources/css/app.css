@@ -7,20 +7,24 @@
 
 /* ===== VARIABLES Y BASE ===== */
 :root {
-  --primary-color: #10b981; /* emerald-500 */
-  --primary-dark: #059669;  /* emerald-600 */
-  --primary-light: #d1fae5; /* emerald-100 */
-  --accent-color: #34d399;  /* green-400 */
+  --primary-color: #10b981;
+  /* emerald-500 */
+  --primary-dark: #059669;
+  /* emerald-600 */
+  --primary-light: #d1fae5;
+  /* emerald-100 */
+  --accent-color: #34d399;
+  /* green-400 */
 }
 
 /* ===== COMPONENTES COMUNES ===== */
 @layer components {
-  
+
   /* BOTONES */
   .btn-primary {
     @apply bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
   }
-  
+
   .btn-secondary {
     @apply bg-green-400 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
   }
@@ -33,7 +37,7 @@
   .card {
     @apply bg-white rounded-xl shadow-lg border-t-4 border-emerald-500 p-6;
   }
-  
+
   .card-feature {
     @apply flex flex-col items-center text-center p-6;
   }
@@ -93,44 +97,44 @@
 
   .day-cell {
     @apply relative p-2 text-center text-sm cursor-pointer transition-all duration-200 rounded-lg;
-    
+
     &.is-disabled {
       @apply text-gray-400 cursor-not-allowed bg-gray-50;
     }
-    
+
     &.is-unavailable {
       @apply text-red-400 cursor-not-allowed bg-red-50 line-through;
     }
-    
+
     &:not(.is-disabled):not(.is-unavailable) {
-        @apply text-gray-900 hover:bg-gray-100;
+      @apply text-gray-900 hover:bg-gray-100;
     }
 
     &.date-range-start,
     &.date-range-end {
       @apply bg-emerald-600 text-white hover:bg-emerald-700;
     }
-    
+
     &.date-range-start {
       @apply rounded-l-lg rounded-r-none;
     }
-    
+
     &.date-range-end {
       @apply rounded-r-lg rounded-l-none;
     }
-    
+
     &.date-range-start.date-range-end {
       @apply rounded-lg;
     }
-    
+
     &.date-in-range {
       @apply bg-emerald-100 text-emerald-900 rounded-none;
     }
-    
+
     &.hover-in-range {
       @apply bg-emerald-50 text-emerald-700;
     }
-    
+
     &.today-indicator {
       @apply font-extrabold border border-emerald-500;
     }
@@ -186,85 +190,84 @@
   }
 
   .total-price {
-    @apply font-extrabold text-2xl text-emerald-600;
+    /* Ajustado a text-xl para no ser tan grande como en la definición de la clase, 
+       pero manteniendo el color de la variable */
+    @apply font-extrabold text-xl text-emerald-600; 
   }
-}
 
-.form-input-modern {
+  /* --- NUEVAS CLASES PARA OPCIONES DE PAGO RF6.1 --- */
+  .payment-option-card {
+    @apply flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer transition duration-200 ease-in-out shadow-sm;
+  }
+
+  .payment-option-card:hover {
+    @apply border-emerald-500 shadow-md;
+  }
+
+  .payment-option-card.active {
+    @apply border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500 shadow-lg;
+  }
+
+  .form-radio {
+    @apply h-5 w-5 text-emerald-600 border-gray-300 focus:ring-emerald-500;
+  }
+
+  /* ---------------------------------------------------- */
+
+  /* Sobreescribimos .form-input-modern aquí */
+  .form-input-modern {
     @apply w-full border border-gray-300 rounded-lg bg-white transition-all duration-200 ease-in-out;
     @apply focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none;
-    @apply hover:border-gray-400;
-}
+    @apply hover:border-gray-400 p-4 pt-6; /* Añadimos padding para campos flotantes */
+  }
 
-.form-label-modern {
+  .form-label-modern {
     @apply absolute left-4 top-2 text-xs text-gray-500 font-medium;
     @apply transition-all duration-200 ease-in-out;
     @apply peer-focus:text-emerald-600 peer-focus:top-2 peer-focus:text-xs;
     @apply peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400;
+  }
 }
 
 /* Para navegadores WebKit (Chrome, Safari) */
 .form-input-modern::-webkit-input-placeholder {
-    color: transparent;
+  color: transparent;
 }
 
 .form-input-modern::-moz-placeholder {
-    color: transparent;
+  color: transparent;
 }
 
 .form-input-modern:-ms-input-placeholder {
-    color: transparent;
+  color: transparent;
 }
 
 .form-input-modern::-ms-input-placeholder {
-    color: transparent;
+  color: transparent;
 }
 
 .form-input-modern::placeholder {
-    color: transparent;
-}
-
-/* Añadir estas clases al app.css existente */
-
-@layer components {
-  /* Estados de la galería */
-  .gallery-thumbnail.active {
-    @apply ring-2 ring-emerald-500 ring-offset-2 opacity-100;
-  }
-  
-  .gallery-thumbnail.inactive {
-    @apply opacity-70;
-  }
-
-  /* Estados del calendario */
-  .calendar-navigation {
-    @apply flex justify-between items-center mb-6;
-  }
-  
-  .nav-button {
-    @apply p-2 rounded-full text-gray-600 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  /* Estados de fecha */
-  .date-selected {
-    @apply bg-emerald-600 text-white hover:bg-emerald-700;
-  }
-  
-  .date-in-range-preview {
-    @apply bg-emerald-50 text-emerald-700;
-  }
+  color: transparent;
 }
 
 /* ===== UTILIDADES PERSONALIZADAS ===== */
 @layer utilities {
-  .text-primary { color: var(--primary-color); }
-  .bg-primary { background-color: var(--primary-color); }
-  .border-primary { border-color: var(--primary-color); }
-  
+  .text-primary {
+    color: var(--primary-color);
+  }
+
+  .bg-primary {
+    background-color: var(--primary-color);
+  }
+
+  .border-primary {
+    border-color: var(--primary-color);
+  }
+
   .container-main {
     @apply container mx-auto px-4 py-12;
   }
-  
+
   .grid-main {
     @apply grid grid-cols-1 lg:grid-cols-3 gap-12;
   }

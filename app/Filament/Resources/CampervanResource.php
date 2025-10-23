@@ -11,10 +11,11 @@ use Filament\Tables;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\FileUpload; // 👈 Importación necesaria
-use Filament\Forms\Components\Section;   // 👈 Importación necesaria
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Illuminate\Database\Eloquent\Builder; // Importación útil para filtros
 
 class CampervanResource extends Resource
 {
@@ -27,7 +28,7 @@ class CampervanResource extends Resource
         return $form
             ->schema([
                 // 1. Columna izquierda (Información Principal y Descripción) - Ocupa 2/3
-                Forms\Components\Group::make() // Usamos Group para envolver secciones
+                Forms\Components\Group::make()
                     ->schema([
                         Forms\Components\Section::make('Información Principal')
                             ->schema([
@@ -40,34 +41,32 @@ class CampervanResource extends Resource
                                     ->columnSpanFull(),
                             ]),
                         
-                        // 2. NUEVA SECCIÓN DE IMÁGENES (Ocupa el ancho de 2 columnas)
+                        // 2. SECCIÓN DE IMÁGENES
                         Forms\Components\Section::make('Gestión de Imágenes')
                             ->description('Sube la imagen principal para la lista y las imágenes de la galería de detalle.')
                             ->schema([
-                                // CAMPO 1: IMAGEN PRINCIPAL (Guarda en 'main_image_path')
                                 FileUpload::make('main_image_path')
                                     ->label('Imagen Principal (Foto de Portada)')
-                                    ->disk('public') // Usa el disco 'public'
-                                    ->directory('campervan_images') // Carpeta dentro de storage/app/public
-                                    ->image() // Validación de que es una imagen
+                                    ->disk('public')
+                                    ->directory('campervan_images')
+                                    ->image()
                                     ->imageResizeMode('cover')
                                     ->imageCropAspectRatio('16:9')
                                     ->imageResizeTargetWidth('1200')
                                     ->imageResizeTargetHeight('675')
                                     ->columnSpan(1),
 
-                                // CAMPO 2: IMÁGENES SECUNDARIAS (Guarda en 'secondary_images_json')
-                                FileUpload::make('secondary_images_json') // Debe coincidir con el campo casteado en el modelo
+                                FileUpload::make('secondary_images_json')
                                     ->label('Galería de Imágenes Secundarias')
                                     ->disk('public') 
                                     ->directory('campervan_images') 
-                                    ->multiple() // Permite múltiples archivos
-                                    ->maxFiles(5) // Límite de 5 imágenes
+                                    ->multiple()
+                                    ->maxFiles(5)
                                     ->image()
-                                    ->reorderable() // Permite reordenar
+                                    ->reorderable()
                                     ->columnSpan(1),
-                            ])->columns(2), // Organiza los dos campos de subida en dos columnas
-                    ])->columnSpan(2), // Este grupo de secciones ocupa 2/3 del formulario principal
+                            ])->columns(2),
+                    ])->columnSpan(2),
 
                 // 3. Columna derecha (Configuración) - Ocupa 1/3
                 Forms\Components\Section::make('Configuración')
@@ -78,21 +77,26 @@ class CampervanResource extends Resource
                             ->prefix('€')
                             ->required(),
 
+                        // --- NUEVO CAMPO RF6.1 MEJORADO ---
+                        Toggle::make('allows_deposit')
+                            ->label('Permitir Pago de Señal')
+                            ->default(true)
+                            ->helperText('Si está activo, el cliente puede optar por pagar solo el 30% como señal.'),
+                        // -----------------------------------
+
                         Toggle::make('is_visible')
                             ->label('Visible para alquilar')
                             ->default(true)
                             ->helperText('Si está apagado, no aparecerá en la web pública'),
                     ])->columnSpan(1),
-            ])->columns(3); // El formulario principal se divide en 3 columnas
+            ])->columns(3);
     }
 
-    // ... (El resto de los métodos table, getRelations, getPages permanecen sin cambios)
-    
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                TextColumn::make('main_image_path') // 👈 Nuevo campo de tabla para ver la ruta
+                TextColumn::make('main_image_path')
                     ->label('Portada')
                     ->limit(25),
                 TextColumn::make('name')
@@ -102,6 +106,13 @@ class CampervanResource extends Resource
                     ->label('Precio/noche')
                     ->money('EUR')
                     ->sortable(),
+                    
+                // --- NUEVA COLUMNA RF6.1 MEJORADO ---
+                IconColumn::make('allows_deposit')
+                    ->label('Permite Señal')
+                    ->boolean(),
+                // -----------------------------------
+
                 IconColumn::make('is_visible')
                     ->label('Visible')
                     ->boolean(), 
@@ -112,7 +123,17 @@ class CampervanResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                // Añadimos un filtro para la nueva columna
+                Tables\Filters\TernaryFilter::make('allows_deposit')
+                    ->label('Pago de Señal')
+                    ->placeholder('Todas las caravanas')
+                    ->trueLabel('Solo con Señal')
+                    ->falseLabel('Solo sin Señal')
+                    ->queries(
+                        true: fn (Builder $query) => $query->where('allows_deposit', true),
+                        false: fn (Builder $query) => $query->where('allows_deposit', false),
+                        blank: fn (Builder $query) => $query,
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

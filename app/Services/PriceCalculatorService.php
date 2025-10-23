@@ -8,6 +8,10 @@ use Carbon\Carbon;
 
 class PriceCalculatorService
 {
+    // --- NUEVA CONSTANTE RF6.1 ---
+    const DEPOSIT_PERCENTAGE = 0.30; // 30% del precio total como señal
+    // -----------------------------
+
     /**
      * Calcula el precio final por noche para una autocaravana y una fecha dada,
      * aplicando todas las reglas de precios.
@@ -54,8 +58,23 @@ class PriceCalculatorService
 
         return round($totalPrice, 2);
     }
+
+    // --- NUEVO MÉTODO RF6.1 ---
+    /**
+     * Calcula el monto del depósito (señal) basado en el precio total.
+     * @param float $totalPrice
+     * @return float
+     */
+    public function calculateDepositAmount(float $totalPrice): float
+    {
+        $deposit = $totalPrice * self::DEPOSIT_PERCENTAGE;
+        
+        // El depósito también debe redondearse a dos decimales
+        return round($deposit, 2);
+    }
+    // -----------------------------
     
-    // --- Lógica Auxiliar de Aplicación de Reglas ---
+    // --- Lógica Auxiliar de Aplicación de Reglas (Sin cambios) ---
 
     /**
      * Comprueba si una regla de precio aplica a una fecha específica.
