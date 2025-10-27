@@ -96,9 +96,6 @@ class CampervanResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('main_image_path')
-                    ->label('Portada')
-                    ->limit(25),
                 TextColumn::make('name')
                     ->label('Nombre Modelo')
                     ->searchable(),
