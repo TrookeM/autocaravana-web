@@ -23,6 +23,8 @@ class CouponController extends Controller
         $validated = $request->validate([
             'code' => 'required|string|max:255',
             'total_price' => 'required|numeric|min:0',
+            // No es necesario validar los campos del cliente aquí,
+            // pero vendrán en el $request
         ]);
 
         $code = strtoupper($validated['code']);
@@ -50,13 +52,17 @@ class CouponController extends Controller
             Session::put('final_price', $finalPrice);
             Session::put('coupon_success', "Cupón '{$coupon->code}' aplicado con éxito. ¡Has ahorrado " . number_format($originalPrice - $finalPrice, 2) . "€!");
 
-            // Redirigir de vuelta al formulario conservando los datos
+            // Redirigir de vuelta al formulario conservando TODOS los datos
             return back()->withInput();
 
         } catch (\Exception $e) {
             // Manejar errores de validación del servicio
             Session::put('coupon_error', $e->getMessage());
-            return back()->withInput(['code' => $validated['code']]);
+            
+            // --- CAMBIO CLAVE AQUÍ ---
+            // Devuelve TODOS los inputs (incluyendo nombre, email...) 
+            // para que no se borren.
+            return back()->withInput();
         }
     }
 }
