@@ -10,6 +10,10 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    
+    {{-- Alpine se carga aquí, lo mantengo por si @vite no lo incluye --}}
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
 </head>
 
 <body class="bg-gray-50 font-sans">
@@ -49,40 +53,52 @@
                     currentImage: 0, 
                     images: @js($cleanedImages),
                     imageCount: @js(count($cleanedImages)),
+                    zoomOpen: false, // <-- Estado del modal
+                    zoomedImage: '', // <-- URL de la imagen en zoom
                     prevImage() {
                         this.currentImage = (this.currentImage - 1 + this.imageCount) % this.imageCount;
                     },
                     nextImage() {
                         this.currentImage = (this.currentImage + 1) % this.imageCount;
+                    },
+                    openZoom(src) {
+                        this.zoomedImage = src;
+                        this.zoomOpen = true;
                     }
                 }"
                 class="mb-8 relative">
 
                 {{-- Imagen Principal --}}
-                <div class="gallery-main">
+                <div class="gallery-main h-[400px] sm:h-[500px] overflow-hidden rounded-2xl shadow-xl relative">
                     <template x-for="(image, index) in images" :key="index">
-                        <img :src="image === 'placeholder' ? 'https://placehold.co/1200x600/10b981/ffffff?text=Tu+Autocaravana+Fantástica' : '{{ $storageUrl }}' + image"
+                        @php
+                            // Lógica para determinar la URL base de la imagen
+                            $imageSrc = "image === 'placeholder' ? 'https://placehold.co/1200x600/10b981/ffffff?text=Tu+Autocaravana+Fantástica' : '{$storageUrl}' + image";
+                        @endphp
+
+                        <img :src="{!! $imageSrc !!}"
                             :alt="'Imagen ' + (index + 1)"
                             x-show="currentImage === index"
+                            @click="openZoom({!! $imageSrc !!})" 
                             x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
                             x-transition:leave="transition ease-in duration-300 absolute top-0 left-0 w-full h-full"
                             x-transition:leave-end="opacity-0"
-                            class="w-full h-full object-cover">
+                            class="w-full h-full object-cover cursor-zoom-in">
                     </template>
                 </div>
 
                 {{-- Botones de Navegación --}}
                 <button x-show="imageCount > 1" @click="prevImage()"
-                    class="gallery-nav-btn left-4 cursor-pointer" aria-label="Anterior">
+                    class="gallery-nav-btn left-4 cursor-pointer absolute top-1/2 -translate-y-1/2 p-3 bg-white/70 backdrop-blur-sm rounded-full shadow-lg transition duration-200 hover:bg-white z-10" aria-label="Anterior">
                     <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </button>
 
                 <button x-show="imageCount > 1" @click="nextImage()"
-                    class="gallery-nav-btn right-4 cursor-pointer" aria-label="Siguiente">
+                    class="gallery-nav-btn right-4 cursor-pointer absolute top-1/2 -translate-y-1/2 p-3 bg-white/70 backdrop-blur-sm rounded-full shadow-lg transition duration-200 hover:bg-white z-10" aria-label="Siguiente">
                     <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -91,12 +107,46 @@
                 {{-- Miniaturas --}}
                 <div class="flex space-x-2 overflow-x-auto p-1 mt-4">
                     <template x-for="(image, index) in images" :key="index">
-                        <img :src="image === 'placeholder' ? 'https://placehold.co/100x70.png?text=Img' : '{{ $storageUrl }}' + image"
+                        @php
+                            $thumbSrc = "image === 'placeholder' ? 'https://placehold.co/100x70.png?text=Img' : '{$storageUrl}' + image";
+                        @endphp
+                        <img :src="{!! $thumbSrc !!}"
                             @click="currentImage = index"
                             :class="{ 'ring-2 ring-emerald-500 ring-offset-2': currentImage === index, 'opacity-70': currentImage !== index }"
                             class="gallery-thumbnail hover:scale-105">
                     </template>
                 </div>
+                
+                {{-- MODAL DE ZOOM (Lightbox) --}}
+                <div 
+                    x-show="zoomOpen" 
+                    x-cloak
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-300"
+                    x-transition:leave-end="opacity-0"
+                    @click.self="zoomOpen = false"
+                    @keydown.escape.window="zoomOpen = false"
+                    class="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
+
+                    {{-- Imagen Ampliada --}}
+                    <div class="max-w-7xl max-h-[90vh] relative">
+                        <img :src="zoomedImage" class="object-contain w-full h-full rounded-xl shadow-2xl" alt="Imagen ampliada">
+                    </div>
+
+                    {{-- Botón de Cierre --}}
+                    <button 
+                        @click="zoomOpen = false" 
+                        class="absolute top-4 right-4 text-white p-3 rounded-full hover:bg-white/20 transition"
+                        aria-label="Cerrar Imagen Ampliada">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                {{-- FIN MODAL DE ZOOM --}}
+
             </div>
 
             <h2 class="text-2xl font-bold text-gray-700 mb-3">Descripción</h2>

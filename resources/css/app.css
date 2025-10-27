@@ -140,8 +140,9 @@
     }
   }
 
-  /* GALERÍA */
+  /* GALERÍA (ESTILOS MOVIDOS DESDE EL BLADE) */
   .gallery-main {
+    /* Estas clases ya estaban en el Blade, solo las redefino para consistencia */
     @apply relative w-full h-96 rounded-2xl shadow-xl overflow-hidden mb-4;
   }
 
@@ -191,7 +192,7 @@
 
   .total-price {
     /* Ajustado a text-xl para no ser tan grande como en la definición de la clase, 
-       pero manteniendo el color de la variable */
+       manteniendo el color de la variable */
     @apply font-extrabold text-xl text-emerald-600; 
   }
 
