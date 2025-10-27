@@ -15,7 +15,8 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
-use Illuminate\Database\Eloquent\Builder; // Importación útil para filtros
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 
 class CampervanResource extends Resource
 {
@@ -27,7 +28,6 @@ class CampervanResource extends Resource
     {
         return $form
             ->schema([
-                // 1. Columna izquierda (Información Principal y Descripción) - Ocupa 2/3
                 Forms\Components\Group::make()
                     ->schema([
                         Forms\Components\Section::make('Información Principal')
@@ -40,8 +40,7 @@ class CampervanResource extends Resource
                                     ->label('Descripción Detallada')
                                     ->columnSpanFull(),
                             ]),
-                        
-                        // 2. SECCIÓN DE IMÁGENES
+
                         Forms\Components\Section::make('Gestión de Imágenes')
                             ->description('Sube la imagen principal para la lista y las imágenes de la galería de detalle.')
                             ->schema([
@@ -58,8 +57,8 @@ class CampervanResource extends Resource
 
                                 FileUpload::make('secondary_images_json')
                                     ->label('Galería de Imágenes Secundarias')
-                                    ->disk('public') 
-                                    ->directory('campervan_images') 
+                                    ->disk('public')
+                                    ->directory('campervan_images')
                                     ->multiple()
                                     ->maxFiles(5)
                                     ->image()
@@ -68,7 +67,6 @@ class CampervanResource extends Resource
                             ])->columns(2),
                     ])->columnSpan(2),
 
-                // 3. Columna derecha (Configuración) - Ocupa 1/3
                 Forms\Components\Section::make('Configuración')
                     ->schema([
                         TextInput::make('price_per_night')
@@ -77,12 +75,16 @@ class CampervanResource extends Resource
                             ->prefix('€')
                             ->required(),
 
-                        // --- NUEVO CAMPO RF6.1 MEJORADO ---
                         Toggle::make('allows_deposit')
                             ->label('Permitir Pago de Señal')
                             ->default(true)
                             ->helperText('Si está activo, el cliente puede optar por pagar solo el 30% como señal.'),
-                        // -----------------------------------
+
+                        Toggle::make('no_checkout_booking')
+                            ->label('Bloquear check-in en día de check-out')
+                            ->default(false)
+                            ->helperText('Si se activa, no se podrá iniciar una reserva el mismo día que finaliza otra (para limpieza).')
+                            ->onColor('danger'),
 
                         Toggle::make('is_visible')
                             ->label('Visible para alquilar')
@@ -99,20 +101,27 @@ class CampervanResource extends Resource
                 TextColumn::make('name')
                     ->label('Nombre Modelo')
                     ->searchable(),
+
                 TextColumn::make('price_per_night')
                     ->label('Precio/noche')
                     ->money('EUR')
                     ->sortable(),
-                    
-                // --- NUEVA COLUMNA RF6.1 MEJORADO ---
+
                 IconColumn::make('allows_deposit')
                     ->label('Permite Señal')
                     ->boolean(),
-                // -----------------------------------
+
+                IconColumn::make('no_checkout_booking')
+                    ->label('Bloqueo')
+                    ->tooltip('Bloqueo de check-in en día de check-out')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-lock-closed')
+                    ->falseIcon('heroicon-o-lock-open'),
 
                 IconColumn::make('is_visible')
                     ->label('Visible')
-                    ->boolean(), 
+                    ->boolean(),
+
                 TextColumn::make('created_at')
                     ->label('Fecha de alta')
                     ->dateTime('d/m/Y')
@@ -120,17 +129,22 @@ class CampervanResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                // Añadimos un filtro para la nueva columna
                 Tables\Filters\TernaryFilter::make('allows_deposit')
                     ->label('Pago de Señal')
                     ->placeholder('Todas las caravanas')
                     ->trueLabel('Solo con Señal')
                     ->falseLabel('Solo sin Señal')
                     ->queries(
-                        true: fn (Builder $query) => $query->where('allows_deposit', true),
-                        false: fn (Builder $query) => $query->where('allows_deposit', false),
-                        blank: fn (Builder $query) => $query,
+                        true: fn(Builder $query) => $query->where('allows_deposit', true),
+                        false: fn(Builder $query) => $query->where('allows_deposit', false),
+                        blank: fn(Builder $query) => $query,
                     ),
+
+                Tables\Filters\TernaryFilter::make('no_checkout_booking')
+                    ->label('Bloqueo Check-in/Check-out')
+                    ->placeholder('Todas')
+                    ->trueLabel('Solo Bloqueadas')
+                    ->falseLabel('Solo Desbloqueadas'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

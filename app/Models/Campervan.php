@@ -22,6 +22,7 @@ class Campervan extends Model
         'is_visible',
         'main_image_path', 
         'secondary_images_json',
+        'no_checkout_booking',
     ];
     
     /**
@@ -32,6 +33,7 @@ class Campervan extends Model
         'allows_deposit' => 'boolean',
         // El campo JSON se convierte automáticamente en un array/Collection de PHP
         'secondary_images_json' => 'array', 
+        'no_checkout_booking' => 'boolean',
     ];
 
     /**
