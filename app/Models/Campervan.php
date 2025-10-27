@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Campervan extends Model
 {
@@ -20,11 +21,11 @@ class Campervan extends Model
         'price_per_night',
         'allows_deposit',
         'is_visible',
-        'main_image_path', 
+        'main_image_path',
         'secondary_images_json',
         'no_checkout_booking',
     ];
-    
+
     /**
      * Define los tipos de datos de los atributos.
      */
@@ -32,7 +33,7 @@ class Campervan extends Model
         'is_visible' => 'boolean',
         'allows_deposit' => 'boolean',
         // El campo JSON se convierte automáticamente en un array/Collection de PHP
-        'secondary_images_json' => 'array', 
+        'secondary_images_json' => 'array',
         'no_checkout_booking' => 'boolean',
     ];
 
@@ -43,10 +44,15 @@ class Campervan extends Model
     {
         return $this->hasMany(Booking::class);
     }
-    
+
     // Método de acceso para obtener las imágenes secundarias de forma más limpia
     public function getSecondaryImagesAttribute(): array
     {
         return $this->secondary_images_json ?? [];
+    }
+
+    public function blockings(): HasMany
+    {
+        return $this->hasMany(Blocking::class);
     }
 }
