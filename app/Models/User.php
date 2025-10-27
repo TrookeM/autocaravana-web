@@ -61,6 +61,6 @@ class User extends Authenticatable implements FilamentUser // Implementación de
     {
         // Esta es la validación que faltaba y que Filament está buscando.
         // Usa tu email de administrador para que puedas entrar.
-        return $this->email === 'admin@tudominio.com'; 
+        return $this->email === 'migatoyorch@gmail.com'; 
     }
 }
