@@ -58,7 +58,7 @@
             <h3 class="text-2xl font-bold text-gray-700 mb-3">Precio por noche: <span class="text-emerald-600">{{ $campervan->price_per_night }}€</span></h3>
         </div>
         
-        <div class="lg:col-span-1 lg:sticky top-12">
+        <div class="lg:col-span-1 lg:row-span-2 lg:sticky top-12">
             <h2 class="text-2xl font-bold text-gray-700 mb-6">Elige tus fechas</h2>
             @livewire('campervan-calendar',['campervan'=>$campervan])
         </div>
