@@ -16,6 +16,7 @@
             <a href="/" class="text-2xl font-bold text-gray-800">Autocaravanas</a>
         </div>
     </nav>
+    
     @if($campervan)
     <div class="container-main grid-main">
         <div class="lg:col-span-2">
@@ -58,10 +59,16 @@
                     </div>
                 </div>
             </div>
+            
             <h2 class="text-2xl font-bold text-gray-700 mb-3">Descripción</h2>
             <div class="text-gray-600 leading-relaxed mb-6">{!! $campervan->description !!}</div>
             <h3 class="text-2xl font-bold text-gray-700 mb-3">Precio por noche: <span class="text-emerald-600">{{ $campervan->price_per_night }}€</span></h3>
+            
+            <div class="reviews-section mt-12">
+                <livewire:campervan-reviews :campervan="$campervan" />
+            </div>
         </div>
+        
         <div class="lg:col-span-1 sticky top-12">
             <h2 class="text-2xl font-bold text-gray-700 mb-6">Elige tus fechas</h2>
             @livewire('campervan-calendar',['campervan'=>$campervan])
@@ -76,6 +83,7 @@
         </div>
     </div>
     @endif
+    
     @livewireScripts
 </body>
 

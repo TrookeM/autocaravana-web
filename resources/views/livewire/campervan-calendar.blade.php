@@ -149,15 +149,12 @@
                             'text-white': dates.checkIn === '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}',
                             'text-gray-800': isDateInRange('{{ $dateString }}') // Para que se vea en rango
                         }"
-                        x-show="dates.checkIn !== '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}' || isDateInRange('{{ $dateString }}')">
+                        
+                        x-show="dates.checkOut !== '{{ $dateString }}'"
+                        >
                         {{ round($date['price']) }}€
                     </span>
                     @endif
-
-                    {{-- ELIMINADO: Ya no mostramos el texto "Mantenimiento" --}}
-                    {{-- @if ($date['is_maintenance'])
-                    <span class="text-xs font-bold leading-none text-yellow-800">Mantenimiento</span>
-                    @endif --}}
                 </div>
                 @endif
                 @endforeach
@@ -166,7 +163,7 @@
 
         {{-- Mes Siguiente (Visible SÓLO en MD, oculto en LG+) --}}
         <div class="hidden md:block lg:hidden">
-             <h3 class="text-base font-bold text-gray-800 text-center mb-3 capitalize">
+            <h3 class="text-base font-bold text-gray-800 text-center mb-3 capitalize">
                 {{ $nextMonthName }} {{ $nextYear }}
             </h3>
             <div class="calendar-grid grid grid-cols-7 gap-1" wire:key="next-month-{{ $nextYear }}-{{ $nextMonth }}-{{ $timestamp }}">
@@ -175,7 +172,7 @@
                 <div class="day-header text-xs font-semibold text-gray-500 text-center">{{ $dayName }}</div>
                 @endforeach
 
-                 {{-- Días del mes siguiente (APLICA LA MISMA LÓGICA DE ESTILOS QUE EL MES ACTUAL) --}}
+                {{-- Días del mes siguiente (APLICA LA MISMA LÓGICA DE ESTILOS QUE EL MES ACTUAL) --}}
                 @foreach ($nextDates as $date)
                 @if ($date['date'] === null)
                 <div class="day-cell"></div>
@@ -207,11 +204,11 @@
                         $baseClasses = str_replace([$baseBgColor, 'bg-gray-100', 'text-gray-400', 'bg-red-100', 'text-red-600', 'hover:bg-red-200/50'], '', $baseClasses);
                         $baseClasses .= ' is-maintenance bg-yellow-300 text-yellow-800 !cursor-not-allowed';
                     }
-                     if ($date['is_today'] && !$date['is_disabled']) {
+                    if ($date['is_today'] && !$date['is_disabled']) {
                         $baseClasses .= ' today-indicator border-emerald-500';
                     }
                 @endphp
-                 <div class="{{ $baseClasses }}"
+                <div class="{{ $baseClasses }}"
                     wire:key="day-{{ $dateString }}-next-{{ $timestamp }}"
                     @click="!{{ $date['is_disabled'] ? 'true' : 'false' }} && selectDate('{{ $dateString }}')"
                     :class="{
@@ -222,19 +219,19 @@
                     }">
                     <span class="font-semibold text-base">{{ $date['day_of_month'] }}</span>
 
-                     {{-- Mostrar precio SOLO si no está deshabilitado Y NO es mantenimiento --}}
+                    {{-- Mostrar precio SOLO si no está deshabilitado Y NO es mantenimiento --}}
                     @if (!$date['is_disabled'] && !$date['is_maintenance'])
                     <span class="text-xs font-bold leading-none {{ $priceTextColor }}"
                         :class="{
                             'text-white': dates.checkIn === '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}',
                             'text-gray-800': isDateInRange('{{ $dateString }}')
                         }"
-                        x-show="dates.checkIn !== '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}' || isDateInRange('{{ $dateString }}')">
+                        
+                        x-show="dates.checkOut !== '{{ $dateString }}'"
+                        >
                         {{ round($date['price']) }}€
                     </span>
                     @endif
-
-                     {{-- ELIMINADO: Ya no mostramos el texto "Mantenimiento" --}}
                 </div>
                 @endif
                 @endforeach
@@ -242,9 +239,7 @@
         </div>
     </div>
 
-    {{-- ========================================== --}}
-    {{-- ====== INICIO: LEYENDA AÑADIDA ========= --}}
-    {{-- ========================================== --}}
+    {{-- Leyenda (Sin cambios) --}}
     <div class="mt-6 pt-4 border-t border-gray-200 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
         <div class="flex items-center">
             <span class="w-4 h-4 rounded-full bg-white border border-gray-300 mr-2"></span>
@@ -258,18 +253,14 @@
             <span class="w-4 h-4 rounded-full bg-yellow-300 mr-2"></span>
             <span>Mantenimiento</span>
         </div>
-         <div class="flex items-center">
+            <div class="flex items-center">
             <span class="w-4 h-4 rounded-full bg-gray-100 mr-2"></span>
             <span>No disponible</span>
         </div>
     </div>
-    {{-- ========================================== --}}
-    {{-- ====== FIN: LEYENDA AÑADIDA ============ --}}
-    {{-- ========================================== --}}
 
     {{-- Botón de reserva (Sin cambios) --}}
-    <div class="mt-8" wire:ignore> {{-- Aumentado el margen superior --}}
-        {{-- ... (contenido del botón) ... --}}
+    <div class="mt-8" wire:ignore> 
         <button @click="submitBooking"
                 :disabled="!isRangeValid || isSubmitting"
                 class="btn-full w-full py-3 px-6 rounded-lg text-white font-bold shadow-lg transition duration-200 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-emerald-500"
@@ -282,4 +273,3 @@
         </button>
     </div>
 </div>
-

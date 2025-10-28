@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Filament\Models\Contracts\FilamentUser; // Interfaz de Filament
-use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable implements FilamentUser // Implementación de la interfaz
 {
@@ -61,6 +62,6 @@ class User extends Authenticatable implements FilamentUser // Implementación de
     {
         // Esta es la validación que faltaba y que Filament está buscando.
         // Usa tu email de administrador para que puedas entrar.
-        return $this->email === 'migatoyorch@gmail.com'; 
+        return $this->email === 'migatoyorch@gmail.com';
     }
 }

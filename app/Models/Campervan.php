@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Campervan extends Model
 {
@@ -24,6 +25,8 @@ class Campervan extends Model
         'main_image_path',
         'secondary_images_json',
         'no_checkout_booking',
+        'check_in_time',
+        'check_out_time',
     ];
 
     /**
@@ -54,5 +57,16 @@ class Campervan extends Model
     public function blockings(): HasMany
     {
         return $this->hasMany(Blocking::class);
+    }
+
+    /**
+     * Obtiene todas las reseñas para esta caravana a través de las reservas.
+     */
+    public function reviews(): HasManyThrough
+    {
+        // Parámetros:
+        // 1. Modelo final (Review)
+        // 2. Modelo intermedio (Booking)
+        return $this->hasManyThrough(Review::class, Booking::class);
     }
 }

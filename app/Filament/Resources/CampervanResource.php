@@ -17,6 +17,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Table;
+use Filament\Forms\Components\TimePicker;
 
 class CampervanResource extends Resource
 {
@@ -73,6 +74,18 @@ class CampervanResource extends Resource
                             ->label('Precio por noche')
                             ->numeric()
                             ->prefix('€')
+                            ->required(),
+
+                        TimePicker::make('check_in_time')
+                            ->label('Hora de Check-in')
+                            ->seconds(false) // Oculta los segundos
+                            ->default('15:00')
+                            ->required(),
+
+                        TimePicker::make('check_out_time')
+                            ->label('Hora de Check-out')
+                            ->seconds(false) // Oculta los segundos
+                            ->default('12:00')
                             ->required(),
 
                         Toggle::make('allows_deposit')

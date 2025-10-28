@@ -43,23 +43,39 @@
                     </div>
                     <div class="summary-item">
                         <dt class="summary-label">Check-in</dt>
-                        <dd class="summary-value">{{ $booking->start_date->format('d/m/Y') }}</dd>
+                        <dd class="summary-value">
+                            {{ $booking->start_date->format('d/m/Y') }}
+
+                            @if($booking->campervan->check_in_time)
+                            <span class="text-gray-600">
+                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_in_time)->format('H:i') }}
+                            </span>
+                            @endif
+                        </dd>
                     </div>
                     <div class="summary-item">
                         <dt class="summary-label">Check-out</dt>
-                        <dd class="summary-value">{{ $booking->end_date->format('d/m/Y') }}</dd>
+                        <dd class="summary-value">
+                            {{ $booking->end_date->format('d/m/Y') }}
+
+                            @if($booking->campervan->check_out_time)
+                            <span class="text-gray-600">
+                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_out_time)->format('H:i') }}
+                            </span>
+                            @endif
+                        </dd>
                     </div>
 
                     {{-- 2. SECCIÓN DE DESCUENTO (RF5.1) --}}
                     @if ($booking->discount_amount > 0 && $booking->coupon_code)
-                        <div class="summary-item pt-4 border-t-2 border-dashed border-gray-200">
-                            <dt class="summary-label">Precio Original</dt>
-                            <dd class="summary-value line-through text-gray-400">{{ number_format($booking->original_price, 2) }}€</dd>
-                        </div>
-                        <div class="summary-item bg-red-50/50">
-                            <dt class="summary-label font-bold text-red-700">Cupón Aplicado ({{ $booking->coupon_code }})</dt>
-                            <dd class="summary-value text-red-700 font-bold">- {{ number_format($booking->discount_amount, 2) }}€</dd>
-                        </div>
+                    <div class="summary-item pt-4 border-t-2 border-dashed border-gray-200">
+                        <dt class="summary-label">Precio Original</dt>
+                        <dd class="summary-value line-through text-gray-400">{{ number_format($booking->original_price, 2) }}€</dd>
+                    </div>
+                    <div class="summary-item bg-red-50/50">
+                        <dt class="summary-label font-bold text-red-700">Cupón Aplicado ({{ $booking->coupon_code }})</dt>
+                        <dd class="summary-value text-red-700 font-bold">- {{ number_format($booking->discount_amount, 2) }}€</dd>
+                    </div>
                     @endif
 
                     {{-- 3. TOTAL FINAL (Precio de la Reserva) --}}
@@ -67,7 +83,7 @@
                         <dt class="summary-label font-bold text-base">PRECIO TOTAL FINAL</dt>
                         <dd class="total-price font-extrabold text-lg text-gray-800">{{ number_format($booking->total_price, 2) }}€</dd>
                     </div>
-                    
+
                     {{-- 4. DESGLOSE DE PAGO (RF6.1) --}}
                     @if ($booking->payment_status === 'deposit_paid')
                     {{-- PAGO PARCIAL (Señal) --}}

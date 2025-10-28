@@ -216,6 +216,34 @@
 
   /* ---------------------------------------------------- */
 
+  /* --- CSS CORREGIDO para el Formulario de Reseñas --- */
+  .review-form-stars {
+    @apply flex flex-row-reverse justify-end items-center;
+  }
+  
+  .review-form-stars input[type="radio"] {
+    /* Oculta el radio button */
+    @apply sr-only; 
+  }
+  
+  .review-form-stars .star-label {
+    @apply text-gray-300 cursor-pointer text-4xl transition-colors duration-150;
+  }
+  
+  /* LÓGICA CORREGIDA: Al pasar el ratón por una estrella (label), se colorea ELLA MISMA
+     y todas las estrellas (label) que son sus hermanas (~) en el DOM.
+     Como el DOM es 5-4-3-2-1, al pasar por 3, colorea 3, 2 y 1. */
+  .review-form-stars .star-label:hover,
+  .review-form-stars .star-label:hover ~ .star-label {
+    @apply text-yellow-400;
+  }
+  
+  /* Estado Seleccionado (checked) */
+  .review-form-stars input[type="radio"]:checked ~ .star-label {
+    @apply text-yellow-500;
+  }
+  /* --- FIN de CSS para Formulario de Reseñas --- */
+
   /* Sobreescribimos .form-input-modern aquí */
   .form-input-modern {
     @apply w-full border border-gray-300 rounded-lg bg-white transition-all duration-200 ease-in-out;

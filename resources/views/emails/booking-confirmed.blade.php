@@ -12,9 +12,32 @@
         .content { padding: 30px; }
         .content p { line-height: 1.6; }
         .details { background-color: #fafafa; padding: 20px; border-radius: 5px; }
-        .details th { text-align: left; padding: 8px; border-bottom: 1px solid #eee; color: #666; }
+        .details th { text-align: left; padding: 8px; border-bottom: 1px solid #eee; color: #666; font-weight: normal; }
         .details td { text-align: right; padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; }
-        .footer { padding: 20px; text-align: center; font-size: 12px; color: #888; }
+        .details .time-note { color: #666; font-weight: normal; font-size: 0.9em; display: block; }
+        
+        /* Estilos para el desglose de precios */
+        .price-breakdown th { padding-top: 15px; }
+        .price-breakdown td { padding-top: 15px; }
+        .price-breakdown .original-price { text-decoration: line-through; color: #888; font-weight: normal; }
+        .price-breakdown .coupon-label { background-color: #fff7ed; color: #c2410c; font-weight: bold; }
+        .price-breakdown .coupon-value { background-color: #fff7ed; color: #c2410c; }
+        .price-breakdown .total-final-label { border-top: 2px solid #ddd; font-weight: bold; font-size: 1.1em; }
+        .price-breakdown .total-final-value { border-top: 2px solid #ddd; font-size: 1.2em; }
+        
+        /* Estilos para el desglose de pago */
+        .payment-breakdown .deposit-paid { color: #059669; }
+        .payment-breakdown .amount-due-label { background-color: #fffbeb; color: #b45309; font-weight: bold; }
+        .payment-breakdown .amount-due-value { background-color: #fffbeb; color: #b45309; }
+        .payment-breakdown .full-paid-label { background-color: #f0fdf4; color: #15803d; font-size: 1.1em; font-weight: bold; }
+        .payment-breakdown .full-paid-value { background-color: #f0fdf4; color: #15803d; font-size: 1.2em; }
+
+        /* Estilo para el aviso inferior */
+        .info-box {
+            margin-top: 25px; padding: 15px; border-radius: 5px;
+            background-color: #fffbeb; border: 1px solid #fef08a; color: #b45309;
+        }
+
     </style>
 </head>
 <body>
@@ -37,17 +60,73 @@
                 </tr>
                 <tr>
                     <th>Check-in:</th>
-                    <td>{{ $booking->start_date->format('d/m/Y') }}</td>
+                    <td>
+                        {{ $booking->start_date->format('d/m/Y') }}
+                        @if($booking->campervan->check_in_time)
+                            <span class="time-note">
+                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_in_time)->format('H:i') }}
+                            </span>
+                        @endif
+                    </td>
                 </tr>
                 <tr>
                     <th>Check-out:</th>
-                    <td>{{ $booking->end_date->format('d/m/Y') }}</td>
+                    <td>
+                        {{ $booking->end_date->format('d/m/Y') }}
+                        @if($booking->campervan->check_out_time)
+                            <span class="time-note">
+                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_out_time)->format('H:i') }}
+                            </span>
+                        @endif
+                    </td>
                 </tr>
-                <tr>
-                    <th>Total Pagado:</th>
-                    <td style="color: #059669; font-size: 1.2em;">{{ number_format($booking->total_price, 2) }}€</td>
+
+                @if ($booking->discount_amount > 0 && $booking->coupon_code)
+                    <tr class="price-breakdown">
+                        <th style="border-top: 2px dashed #eee; padding-top: 15px;">Precio Original:</th>
+                        <td style="border-top: 2px dashed #eee; padding-top: 15px;" class="original-price">{{ number_format($booking->original_price, 2) }}€</td>
+                    </tr>
+                    <tr class="price-breakdown">
+                        <th class="coupon-label">Cupón ({{ $booking->coupon_code }}):</th>
+                        <td class="coupon-value">- {{ number_format($booking->discount_amount, 2) }}€</td>
+                    </tr>
+                @endif
+
+                <tr class="price-breakdown">
+                    <th class="total-final-label">PRECIO TOTAL FINAL:</th>
+                    <td class="total-final-value">{{ number_format($booking->total_price, 2) }}€</td>
                 </tr>
-            </table>
+
+                @if ($booking->payment_status === 'deposit_paid')
+                    {{-- PAGO PARCIAL (Señal) --}}
+                    <tr class="payment-breakdown">
+                        <th style="border-top: 2px solid #ddd; padding-top: 15px;">Pagado Hoy (Señal):</th>
+                        <td style="border-top: 2px solid #ddd; padding-top: 15px;" class="deposit-paid">{{ number_format($booking->amount_paid, 2) }}€</td>
+                    </tr>
+                    <tr class="payment-breakdown">
+                        <th class="amount-due-label">Pendiente de Pago:</th>
+                        <td class="amount-due-value">{{ number_format($booking->amount_due, 2) }}€</td>
+                    </tr>
+                    <tr class="payment-breakdown">
+                        <th>Fecha Límite Restante:</th>
+                        <td>{{ $booking->payment_due_date ? $booking->payment_due_date->format('d/m/Y') : 'N/A' }}</td>
+                    </tr>
+                @else
+                    {{-- PAGO TOTAL --}}
+                    <tr class="payment-breakdown">
+                        <th class="full-paid-label" style="border-top: 2px solid #ddd; padding-top: 15px;">Total Pagado Hoy (100%):</th>
+                        <td class="full-paid-value" style="border-top: 2px solid #ddd; padding-top: 15px;">{{ number_format($booking->total_price, 2) }}€</td>
+                    </tr>
+                @endif
+                </table>
+
+            @if ($booking->payment_status === 'deposit_paid')
+                <div class="info-box">
+                    <p style="margin: 0;">
+                        <strong>Importante:</strong> El pago restante de <strong>{{ number_format($booking->amount_due, 2) }}€</strong> vence el <strong>{{ $booking->payment_due_date ? $booking->payment_due_date->format('d/m/Y') : 'N/A' }}</strong>.
+                    </p>
+                </div>
+            @endif
 
             <p style="margin-top: 25px;">Recibirás más instrucciones sobre la entrega y devolución pronto.</p>
             <p>¡Gracias por confiar en nosotros!</p>
