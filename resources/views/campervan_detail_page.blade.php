@@ -19,6 +19,7 @@
     
     @if($campervan)
     <div class="container-main grid-main">
+        
         <div class="lg:col-span-2">
             <h1 class="text-4xl font-extrabold text-gray-800 mb-4">{{ $campervan->name }}</h1>
             @php
@@ -49,42 +50,31 @@
                     </template>
                 </div>
                 <div x-cloak x-show="isZoomOpen" x-transition.opacity class="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4" @click.self="isZoomOpen=false" @keydown.escape.window="isZoomOpen=false">
-                    <div class="relative w-full h-full max-w-7xl max-h-screen">
-                        <img :src="zoomImage" alt="Imagen ampliada" class="w-full h-full object-contain">
-                        <button @click="isZoomOpen=false" class="absolute top-4 right-4 p-3 bg-white/30 hover:bg-white/50 text-white rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500" aria-label="Cerrar imagen ampliada">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
                     </div>
-                </div>
             </div>
             
             <h2 class="text-2xl font-bold text-gray-700 mb-3">Descripción</h2>
             <div class="text-gray-600 leading-relaxed mb-6">{!! $campervan->description !!}</div>
             <h3 class="text-2xl font-bold text-gray-700 mb-3">Precio por noche: <span class="text-emerald-600">{{ $campervan->price_per_night }}€</span></h3>
-            
+        </div>
+        
+        <div class="lg:col-span-1 lg:sticky top-12">
+            <h2 class="text-2xl font-bold text-gray-700 mb-6">Elige tus fechas</h2>
+            @livewire('campervan-calendar',['campervan'=>$campervan])
+        </div>
+
+        <div class="lg:col-span-2">
             <div class="reviews-section mt-12">
                 <livewire:campervan-reviews :campervan="$campervan" />
             </div>
         </div>
-        
-        <div class="lg:col-span-1 sticky top-12">
-            <h2 class="text-2xl font-bold text-gray-700 mb-6">Elige tus fechas</h2>
-            @livewire('campervan-calendar',['campervan'=>$campervan])
-        </div>
+
     </div>
     @else
     <div class="container-main text-center">
-        <div class="card max-w-lg mx-auto">
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">Autocaravana no encontrada</h1>
-            <p class="text-gray-600 mb-6">Lo sentimos, la autocaravana que buscas (ID: {{ request()->route('id') ?? 'desconocido' }}) no existe o no está disponible.</p>
-            <a href="/" class="btn-primary">Volver al inicio</a>
         </div>
-    </div>
     @endif
     
     @livewireScripts
 </body>
-
 </html>
