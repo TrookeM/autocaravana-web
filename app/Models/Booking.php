@@ -34,6 +34,8 @@ class Booking extends Model
         'payment_status',
         'payment_due_date',
         'reminder_sent', // <-- AÑADIR ESTA LÍNEA
+        'km_salida',   // <-- AÑADIR ESTA LÍNEA
+        'km_llegada',  // <-- AÑADIR ESTA LÍNEA
     ];
 
     protected $casts = [

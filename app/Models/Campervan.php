@@ -27,6 +27,8 @@ class Campervan extends Model
         'no_checkout_booking',
         'check_in_time',
         'check_out_time',
+        'km_limit',           // <-- AÑADIR ESTA LÍNEA
+        'price_per_extra_km',
     ];
 
     /**

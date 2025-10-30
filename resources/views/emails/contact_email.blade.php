@@ -74,7 +74,7 @@
             </a>
         </div>
         <div class="footer">
-            <p>&copy; {{ date('Y') }} Forester Campers. Este correo fue enviado desde la web.</p>
+            <p>&copy; {{ date('Y') }} Campers. Este correo fue enviado desde la web.</p>
         </div>
     </div>
 </body>

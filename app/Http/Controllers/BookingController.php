@@ -14,6 +14,7 @@ use App\Mail\BookingConfirmed;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB; // Usaremos transacciones de DB para mayor seguridad
 use Illuminate\Support\Facades\Session; // Para limpiar la sesión de cupones
+use Barryvdh\DomPDF\Facade\Pdf; // <-- ¡LÍNEA AÑADIDA!
 
 class BookingController extends Controller
 {
@@ -224,5 +225,31 @@ class BookingController extends Controller
         $booking = Booking::with('campervan')->findOrFail($id);
         
         return view('booking.confirmation', compact('booking'));
+    }
+    
+    /**
+     * ==========================================================
+     * ¡NUEVA FUNCIÓN AÑADIDA!
+     * Genera y descarga el contrato en PDF.
+     * ==========================================================
+     */
+    public function downloadContract(Booking $booking)
+    {
+        // Cargamos las relaciones que usaremos en el PDF
+        $booking->load('campervan');
+
+        // Pasamos los datos del booking a la vista del PDF
+        $pdf = Pdf::loadView('pdf.contract', [
+            'booking' => $booking
+        ]);
+
+        // (Opcional) Configura el tamaño del papel
+        $pdf->setPaper('a4', 'portrait');
+
+        // Define el nombre del archivo
+        $fileName = 'contrato_reserva_' . $booking->id . '.pdf';
+
+        // Descarga el PDF en el navegador del usuario
+        return $pdf->download($fileName);
     }
 }

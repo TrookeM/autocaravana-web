@@ -29,3 +29,7 @@ Route::get('/booking/confirmation/{id}', [BookingController::class, 'confirmatio
 
 // --- RUTA PARA EL CUPÓN (RF5.1) ---
 Route::post('/coupon/apply', [CouponController::class, 'apply'])->name('coupon.apply');
+
+// Ruta para descargar el contrato en PDF
+Route::get('/booking/{booking}/contract', [BookingController::class, 'downloadContract'])
+    ->name('booking.contract.download');

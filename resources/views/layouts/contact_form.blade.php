@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Forester Campers')</title>
+    <title>@yield('title', 'Campers')</title>
     
     {{-- Vite Assets para Tailwind CSS y JS --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -19,7 +19,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0 1.5 1.5 0 0 1 3 0ZM15.75 18.75a1.5 1.5 0 0 1-3 0 1.5 1.5 0 0 1 3 0Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 7.5v3.75m-4.24-2.25 4.74-4.74M9 16.125l5.25-10.5h3.75L18.75 12h-4.72a3 3 0 0 0-2.83 2H9a3 3 0 0 0-2.83 2H4.5V8.25m14.25 8.25v2.25M7.5 7.5h.008v.008H7.5V7.5Zm12.75 12.75h.008v.008h-.008v-.008Z" />
                 </svg>
-                <span class="text-xl font-extrabold text-emerald-700">Forester Campers</span>
+                <span class="text-xl font-extrabold text-emerald-700">Campers</span>
             </a>
 
             <ul class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
@@ -55,9 +55,9 @@
             
             {{-- Columna 1: Sobre Nosotros --}}
             <div>
-                <h3 class="text-xl font-bold mb-4 border-b border-emerald-700 pb-2">Forester Campers</h3>
+                <h3 class="text-xl font-bold mb-4 border-b border-emerald-700 pb-2">Campers</h3>
                 <p class="text-sm text-emerald-100">
-                    En Forester Campers ofrecemos experiencias únicas sobre ruedas. Calidad, libertad y aventura garantizadas en cada viaje.
+                    En Campers ofrecemos experiencias únicas sobre ruedas. Calidad, libertad y aventura garantizadas en cada viaje.
                 </p>
             </div>
 
@@ -77,7 +77,7 @@
                 <h3 class="text-xl font-bold mb-4 border-b border-emerald-700 pb-2">Contacto</h3>
                 <ul class="text-sm text-emerald-100 space-y-3">
                     <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.772-1.549a1 1 0 011.06-.54l4.435.74A1 1 0 0118 16.847V17a1 1 0 01-1 1h-1.153a1 1 0 01-.986-.836l-.74-4.435a1 1 0 01.54-1.06l1.548-.773a11.037 11.037 0 00-6.105-6.105l-.772 1.549a1 1 0 01-1.06.54l-4.435-.74A1 1 0 013.153 3H2z" /></svg> +34 600 123 456</li>
-                    <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg> info@forestercampers.es</li>
+                    <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg> info@ampers.es</li>
                     <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 1110.63 8.35c-.244.372-.61.737-.997 1.026C13.627 14.62 10 17 10 17s-3.627-2.38-4.686-3.57C4.66 12.137 4.295 11.772 4.05 11.4A7 7 0 015.05 4.05zm5.45 6.45a2 2 0 10-4 0 2 2 0 004 0z" clip-rule="evenodd"/></svg> Madrid, España</li>
                 </ul>
             </div>
@@ -94,7 +94,7 @@
         </div>
 
         <div class="text-center text-emerald-200 text-sm mt-10 border-t border-emerald-800 pt-6">
-            © {{ date('Y') }} Forester Campers. Todos los derechos reservados.
+            © {{ date('Y') }} Campers. Todos los derechos reservados.
         </div>
     </footer>
 
