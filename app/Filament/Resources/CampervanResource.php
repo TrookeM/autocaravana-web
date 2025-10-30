@@ -19,8 +19,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Table;
 use Filament\Forms\Components\TimePicker;
 
-// --- ¡LÍNEA AÑADIDA! ---
+// --- Imports de Relation Manager y Widget ---
 use App\Filament\Resources\CampervanResource\RelationManagers\MaintenancesRelationManager;
+use App\Filament\Resources\CampervanResource\Widgets\CampervanStatsWidget; // <-- ¡LÍNEA AÑADIDA!
 
 class CampervanResource extends Resource
 {
@@ -81,10 +82,10 @@ class CampervanResource extends Resource
 
                         // --- CAMPOS DE KILOMETRAJE (ACTUALIZADOS) ---
                         TextInput::make('km_limit')
-                            ->label('Límite de KM por Día') // <-- CAMBIADO
+                            ->label('Límite de KM por Día')
                             ->numeric()
-                            ->suffix('km / día') // <-- CAMBIADO
-                            ->helperText('Límite de KM diarios. Dejar vacío para ilimitado.') // <-- CAMBIADO
+                            ->suffix('km / día')
+                            ->helperText('Límite de KM diarios. Dejar vacío para ilimitado.')
                             ->nullable(),
 
                         TextInput::make('price_per_extra_km')
@@ -92,18 +93,18 @@ class CampervanResource extends Resource
                             ->numeric()
                             ->prefix('€')
                             ->helperText('Coste por cada KM que exceda el límite.')
-                            ->nullable(), // Permite que sea nulo
+                            ->nullable(),
                         // --- ================================== ---
 
                         TimePicker::make('check_in_time')
                             ->label('Hora de Check-in')
-                            ->seconds(false) // Oculta los segundos
+                            ->seconds(false)
                             ->default('15:00')
                             ->required(),
 
                         TimePicker::make('check_out_time')
                             ->label('Hora de Check-out')
-                            ->seconds(false) // Oculta los segundos
+                            ->seconds(false)
                             ->default('12:00')
                             ->required(),
 
@@ -188,11 +189,6 @@ class CampervanResource extends Resource
             ]);
     }
 
-    /**
-     * ==========================================================
-     * ¡MÉTODO GETRELATIONS() ACTUALIZADO!
-     * ==========================================================
-     */
     public static function getRelations(): array
     {
         return [
