@@ -19,6 +19,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Table;
 use Filament\Forms\Components\TimePicker;
 
+// --- ¡LÍNEA AÑADIDA! ---
+use App\Filament\Resources\CampervanResource\RelationManagers\MaintenancesRelationManager;
+
 class CampervanResource extends Resource
 {
     protected static ?string $model = Campervan::class;
@@ -76,9 +79,6 @@ class CampervanResource extends Resource
                             ->prefix('€')
                             ->required(),
 
-                        // --- ================================== ---
-                        // --- CAMPOS DE KILOMETRAJE (¡AÑADIDOS!) ---
-                        // --- ================================== ---
                         // --- CAMPOS DE KILOMETRAJE (ACTUALIZADOS) ---
                         TextInput::make('km_limit')
                             ->label('Límite de KM por Día') // <-- CAMBIADO
@@ -188,10 +188,16 @@ class CampervanResource extends Resource
             ]);
     }
 
+    /**
+     * ==========================================================
+     * ¡MÉTODO GETRELATIONS() ACTUALIZADO!
+     * ==========================================================
+     */
     public static function getRelations(): array
     {
         return [
-            //
+            // Registramos el nuevo manager
+            MaintenancesRelationManager::class,
         ];
     }
 

@@ -27,7 +27,7 @@ class Campervan extends Model
         'no_checkout_booking',
         'check_in_time',
         'check_out_time',
-        'km_limit',           // <-- AÑADIR ESTA LÍNEA
+        'km_limit',           // Limpio el comentario
         'price_per_extra_km',
     ];
 
@@ -70,5 +70,15 @@ class Campervan extends Model
         // 1. Modelo final (Review)
         // 2. Modelo intermedio (Booking)
         return $this->hasManyThrough(Review::class, Booking::class);
+    }
+
+    /**
+     * ==========================================================
+     * Una autocaravana tiene muchos registros de mantenimiento.
+     * ==========================================================
+     */
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
     }
 }
