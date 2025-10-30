@@ -79,12 +79,13 @@ class CampervanResource extends Resource
                         // --- ================================== ---
                         // --- CAMPOS DE KILOMETRAJE (¡AÑADIDOS!) ---
                         // --- ================================== ---
+                        // --- CAMPOS DE KILOMETRAJE (ACTUALIZADOS) ---
                         TextInput::make('km_limit')
-                            ->label('Límite de KM')
+                            ->label('Límite de KM por Día') // <-- CAMBIADO
                             ->numeric()
-                            ->suffix('km')
-                            ->helperText('Dejar vacío o en 0 para kilometraje ilimitado.')
-                            ->nullable(), // Permite que sea nulo
+                            ->suffix('km / día') // <-- CAMBIADO
+                            ->helperText('Límite de KM diarios. Dejar vacío para ilimitado.') // <-- CAMBIADO
+                            ->nullable(),
 
                         TextInput::make('price_per_extra_km')
                             ->label('Precio por KM Extra')
@@ -93,7 +94,7 @@ class CampervanResource extends Resource
                             ->helperText('Coste por cada KM que exceda el límite.')
                             ->nullable(), // Permite que sea nulo
                         // --- ================================== ---
-                        
+
                         TimePicker::make('check_in_time')
                             ->label('Hora de Check-in')
                             ->seconds(false) // Oculta los segundos

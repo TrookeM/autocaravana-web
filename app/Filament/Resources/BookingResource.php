@@ -24,7 +24,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Section;
-use Illuminate\Support\Facades\URL; 
+use Illuminate\Support\Facades\URL;
 use Filament\Forms\Components\Placeholder; // <-- ¡AÑADIR ESTA LÍNEA!
 use Filament\Forms\Get;                     // <-- ¡AÑADIR ESTA LÍNEA!
 
@@ -112,7 +112,6 @@ class BookingResource extends Resource
                             ->reactive() // <-- AÑADIDO: para recalcular en vivo
                             ->placeholder('KMs al devolver'),
 
-                        // --- CAMPO CALCULADO (AÑADIDO) ---
                         Placeholder::make('cargo_extra_km')
                             ->label('Cargo por KM Extra')
                             ->content(function (Get $get, $record): string {
@@ -120,33 +119,44 @@ class BookingResource extends Resource
                                     return '0.00 € (Solo disponible al editar)';
                                 }
 
+                                // 1. Obtenemos los datos
                                 $campervan = $record->campervan;
                                 $kmSalida = (int)$get('km_salida');
                                 $kmLlegada = (int)$get('km_llegada');
-                                $kmLimit = (int)$campervan->km_limit;
                                 $pricePerExtraKm = (float)$campervan->price_per_extra_km;
 
-                                if (empty($kmLimit) || $kmLimit === 0 || empty($pricePerExtraKm)) {
+                                // 2. Obtenemos el límite DIARIO
+                                $kmLimitPerDay = (int)$campervan->km_limit;
+
+                                // 3. Verificamos si hay límite
+                                if (empty($kmLimitPerDay) || $kmLimitPerDay === 0 || empty($pricePerExtraKm)) {
                                     return '0.00 € (KM Ilimitados)';
                                 }
-                                
+
                                 if (empty($kmLlegada) || $kmLlegada <= $kmSalida) {
                                     return '0.00 €';
                                 }
 
+                                // 4. Calculamos el límite TOTAL
+                                $nights = $record->start_date->diffInDays($record->end_date);
+                                // Si la estancia es 0 noches (mismo día), damos 1 día de KM
+                                $totalNights = $nights > 0 ? $nights : 1;
+                                $totalKmLimit = $kmLimitPerDay * $totalNights;
+
+                                // 5. Calculamos el extra
                                 $kmRecorridos = $kmLlegada - $kmSalida;
-                                $kmExtra = $kmRecorridos - $kmLimit;
+                                $kmExtra = $kmRecorridos - $totalKmLimit;
 
                                 if ($kmExtra <= 0) {
-                                    return '0.00 € (Límite no superado)';
+                                    return '0.00 € (Límite no superado: ' . $totalKmLimit . ' km)';
                                 }
 
                                 $cargo = $kmExtra * $pricePerExtraKm;
-                                
+
                                 return number_format($cargo, 2, ',', '.') . ' € (' . $kmExtra . ' km extra)';
                             })
                             ->columnSpanFull()
-                            ->helperText('Este campo se calcula automáticamente al guardar.'),
+                            ->helperText('Este campo se calcula automáticamente.'),
                     ])->columns(2),
 
                 // --- Grupo de Notificaciones ---
@@ -158,7 +168,7 @@ class BookingResource extends Resource
                     ])->columns(1),
             ]);
     }
-    
+
     public static function table(Table $table): Table
     {
         return $table
@@ -180,16 +190,16 @@ class BookingResource extends Resource
                     ->label('Check-out')
                     ->date('d/m/Y')
                     ->sortable(),
-                
+
                 SelectColumn::make('status')
-                    ->label('Estado Reserva') 
+                    ->label('Estado Reserva')
                     ->options([
                         'pending' => 'Pendiente',
                         'confirmed' => 'Confirmada',
                         'cancelled' => 'Cancelada',
                     ])
                     ->sortable(),
-                
+
                 SelectColumn::make('payment_status')
                     ->label('Estado Pago')
                     ->options([
@@ -198,12 +208,12 @@ class BookingResource extends Resource
                         Booking::STATUS_FULL_PAID => 'Pagado Total',
                     ])
                     ->sortable(),
-                
+
                 TextColumn::make('amount_paid')
                     ->label('Pagado')
                     ->money('EUR')
                     ->sortable(),
-                
+
                 TextColumn::make('total_price')
                     ->label('Total')
                     ->money('EUR')
@@ -214,12 +224,12 @@ class BookingResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                
+
                 Action::make('Descargar Contrato')
                     ->icon('heroicon-o-document-arrow-down')
-                    ->url(fn (Booking $record): string => route('booking.contract.download', $record))
+                    ->url(fn(Booking $record): string => route('booking.contract.download', $record))
                     ->openUrlInNewTab(),
-                
+
                 Action::make('Cancelar')
                     ->action(fn(Booking $record) => $record->update(['status' => 'cancelled']))
                     ->color('danger')
@@ -233,14 +243,14 @@ class BookingResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -248,5 +258,5 @@ class BookingResource extends Resource
             'create' => Pages\CreateBooking::route('/create'),
             'edit' => Pages\EditBooking::route('/{record}/edit'),
         ];
-    }    
+    }
 }
