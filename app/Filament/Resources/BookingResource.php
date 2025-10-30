@@ -18,50 +18,94 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\SelectColumn; // 1. Importar SelectColumn
 use Filament\Tables\Actions\Action; // 2. Importar Action
 
+// --- Imports para los nuevos campos del formulario ---
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle; // ¡Asegúrate de que este 'use' esté!
+
 class BookingResource extends Resource
 {
     protected static ?string $model = Booking::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days'; // Icono de calendario
 
+    /**
+     * ==========================================================
+     * MÉTODO FORM() ACTUALIZADO CON LOS NUEVOS CAMPOS
+     * ==========================================================
+     */
     public static function form(Form $form): Form
     {
-        // El formulario de creación/edición puede ser simple por ahora
         return $form
             ->schema([
-                Forms\Components\Select::make('campervan_id')
+                Select::make('campervan_id')
                     ->relationship('campervan', 'name')
                     ->required(),
-                Forms\Components\TextInput::make('customer_name')
+                TextInput::make('customer_name')
                     ->label('Nombre Cliente')
                     ->required(),
-                Forms\Components\TextInput::make('customer_email')
+                TextInput::make('customer_email')
                     ->label('Email Cliente')
                     ->email()
                     ->required(),
-                Forms\Components\DatePicker::make('start_date')
+                DatePicker::make('start_date')
                     ->label('Check-in')
                     ->required(),
-                Forms\Components\DatePicker::make('end_date')
+                DatePicker::make('end_date')
                     ->label('Check-out')
                     ->required(),
-                Forms\Components\TextInput::make('total_price')
+                TextInput::make('total_price')
                     ->label('Precio Total')
                     ->numeric()
                     ->prefix('€')
                     ->required(),
-                Forms\Components\Select::make('status')
-                    ->label('Estado')
+
+                // --- CAMPO DE ESTADO (El que ya tenías) ---
+                Select::make('status')
+                    ->label('Estado de la Reserva')
                     ->options([
-                        'pending' => 'Pendiente', // Si decides cambiar el 'confirmed' por defecto
+                        'pending' => 'Pendiente',
                         'confirmed' => 'Confirmada',
                         'cancelled' => 'Cancelada',
                     ])
                     ->default('confirmed')
                     ->required(),
+
+                // --- ================================== ---
+                // --- CAMPOS DE PAGO (¡AÑADIDOS!) ---
+                // --- ================================== ---
+
+                Select::make('payment_status')
+                    ->label('Estado del Pago')
+                    ->options([
+                        // Usamos las constantes de tu Modelo Booking
+                        Booking::STATUS_PENDING => 'Pendiente de Pago',
+                        Booking::STATUS_DEPOSIT_PAID => 'Señal Pagada (Parcial)',
+                        Booking::STATUS_FULL_PAID => 'Pago Total Completado',
+                    ])
+                    ->default(Booking::STATUS_PENDING)
+                    ->required()
+                    ->reactive(),
+
+                TextInput::make('amount_paid')
+                    ->label('Cantidad Pagada')
+                    ->numeric()
+                    ->prefix('€')
+                    ->default(0.00)
+                    ->required(),
+
+                Toggle::make('reminder_sent')
+                    ->label('Recordatorio de pago enviado')
+                    ->default(false),
             ]);
     }
 
+    /**
+     * ==========================================================
+     * TU MÉTODO TABLE() (SIN CAMBIOS)
+     * ==========================================================
+     */
     public static function table(Table $table): Table
     {
         return $table
@@ -83,7 +127,7 @@ class BookingResource extends Resource
                     ->label('Check-out')
                     ->date('d/m/Y')
                     ->sortable(),
-                
+
                 // 3. COLUMNA DE ESTADO (Editable)
                 SelectColumn::make('status')
                     ->label('Estado')
@@ -92,7 +136,7 @@ class BookingResource extends Resource
                         'cancelled' => 'Cancelada',
                     ])
                     ->sortable(),
-                
+
                 TextColumn::make('total_price')
                     ->label('Total')
                     ->money('EUR')
@@ -103,14 +147,14 @@ class BookingResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                
+
                 // 4. ACCIÓN DE CANCELAR
                 Action::make('Cancelar')
-                    ->action(fn (Booking $record) => $record->update(['status' => 'cancelled']))
+                    ->action(fn(Booking $record) => $record->update(['status' => 'cancelled']))
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation() // Pide confirmación
-                    ->hidden(fn (Booking $record) => $record->status === 'cancelled'), // Oculta si ya está cancelada
+                    ->hidden(fn(Booking $record) => $record->status === 'cancelled'), // Oculta si ya está cancelada
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -118,14 +162,14 @@ class BookingResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -133,5 +177,5 @@ class BookingResource extends Resource
             'create' => Pages\CreateBooking::route('/create'),
             'edit' => Pages\EditBooking::route('/{record}/edit'),
         ];
-    }    
+    }
 }

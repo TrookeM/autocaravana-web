@@ -22,7 +22,7 @@ class Booking extends Model
 
     protected $fillable = [
         'campervan_id',
-        'user_id', // <-- AÑADIR ESTA LÍNEA
+        'user_id', 
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -33,6 +33,7 @@ class Booking extends Model
         'amount_paid',
         'payment_status',
         'payment_due_date',
+        'reminder_sent', // <-- AÑADIR ESTA LÍNEA
     ];
 
     protected $casts = [
