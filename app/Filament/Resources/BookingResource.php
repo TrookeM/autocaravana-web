@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Columns\BadgeColumn; // <-- ¡AÑADIDA!
 
 // --- Imports para los nuevos campos del formulario ---
 use Filament\Forms\Components\Select;
@@ -25,11 +26,18 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Section;
 use Illuminate\Support\Facades\URL;
-use Filament\Forms\Components\Placeholder; // <-- ¡AÑADIR ESTA LÍNEA!
-use Filament\Forms\Get;                     // <-- ¡AÑADIR ESTA LÍNEA!
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Get;
+
+// --- Imports para la nueva acción "Finalizar Reserva" ---
+use App\Mail\BookingClosedMail;
+use Illuminate\Support\Facades\Mail;
+use Filament\Notifications\Notification; 
+use Carbon\Carbon;
 
 class BookingResource extends Resource
 {
+    // ... (tu $model, $navigationIcon, y el método form() se quedan igual) ...
     protected static ?string $model = Booking::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
@@ -44,7 +52,7 @@ class BookingResource extends Resource
                         Select::make('campervan_id')
                             ->relationship('campervan', 'name')
                             ->required()
-                            ->reactive() // <-- Reactivo por si acaso lo necesitamos
+                            ->reactive() 
                             ->searchable(),
                         TextInput::make('customer_name')
                             ->label('Nombre Cliente')
@@ -64,11 +72,12 @@ class BookingResource extends Resource
                             ->options([
                                 'pending' => 'Pendiente',
                                 'confirmed' => 'Confirmada',
+                                'completed' => 'Completada', 
                                 'cancelled' => 'Cancelada',
                             ])
                             ->default('confirmed')
                             ->required(),
-                    ])->columns(2), // Organiza en 2 columnas
+                    ])->columns(2), 
 
                 // --- Grupo de Pagos ---
                 Section::make('Datos de Pago')
@@ -94,22 +103,20 @@ class BookingResource extends Resource
                             ->prefix('€')
                             ->default(0.00)
                             ->required(),
-                    ])->columns(3), // Organiza en 3 columnas
+                    ])->columns(3), 
 
-                // --- ================================== ---
-                // --- ¡SECCIÓN DE KILOMETRAJE ACTUALIZADA! ---
-                // --- ================================== ---
+                // --- Sección de Kilometraje ---
                 Section::make('Registro de Kilometraje (RF6.4)')
                     ->schema([
                         TextInput::make('km_salida')
                             ->label('Kilometraje de Salida')
                             ->numeric()
-                            ->reactive() // <-- AÑADIDO: para recalcular en vivo
+                            ->reactive() 
                             ->placeholder('KMs al recoger'),
                         TextInput::make('km_llegada')
                             ->label('Kilometraje de Llegada')
                             ->numeric()
-                            ->reactive() // <-- AÑADIDO: para recalcular en vivo
+                            ->reactive() 
                             ->placeholder('KMs al devolver'),
 
                         Placeholder::make('cargo_extra_km')
@@ -118,41 +125,26 @@ class BookingResource extends Resource
                                 if (!$record) {
                                     return '0.00 € (Solo disponible al editar)';
                                 }
-
-                                // 1. Obtenemos los datos
                                 $campervan = $record->campervan;
                                 $kmSalida = (int)$get('km_salida');
                                 $kmLlegada = (int)$get('km_llegada');
                                 $pricePerExtraKm = (float)$campervan->price_per_extra_km;
-
-                                // 2. Obtenemos el límite DIARIO
                                 $kmLimitPerDay = (int)$campervan->km_limit;
-
-                                // 3. Verificamos si hay límite
                                 if (empty($kmLimitPerDay) || $kmLimitPerDay === 0 || empty($pricePerExtraKm)) {
                                     return '0.00 € (KM Ilimitados)';
                                 }
-
                                 if (empty($kmLlegada) || $kmLlegada <= $kmSalida) {
                                     return '0.00 €';
                                 }
-
-                                // 4. Calculamos el límite TOTAL
-                                $nights = $record->start_date->diffInDays($record->end_date);
-                                // Si la estancia es 0 noches (mismo día), damos 1 día de KM
+                                $nights = Carbon::parse($record->start_date)->diffInDays(Carbon::parse($record->end_date));
                                 $totalNights = $nights > 0 ? $nights : 1;
                                 $totalKmLimit = $kmLimitPerDay * $totalNights;
-
-                                // 5. Calculamos el extra
                                 $kmRecorridos = $kmLlegada - $kmSalida;
                                 $kmExtra = $kmRecorridos - $totalKmLimit;
-
                                 if ($kmExtra <= 0) {
                                     return '0.00 € (Límite no superado: ' . $totalKmLimit . ' km)';
                                 }
-
                                 $cargo = $kmExtra * $pricePerExtraKm;
-
                                 return number_format($cargo, 2, ',', '.') . ' € (' . $kmExtra . ' km extra)';
                             })
                             ->columnSpanFull()
@@ -175,30 +167,48 @@ class BookingResource extends Resource
             ->columns([
                 TextColumn::make('id')
                     ->label('ID Reserva')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true), // OCULTO
+
                 TextColumn::make('campervan.name')
                     ->label('Autocaravana')
                     ->searchable(),
+
                 TextColumn::make('customer_name')
                     ->label('Cliente')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true), // OCULTO
+
                 TextColumn::make('start_date')
                     ->label('Check-in')
                     ->date('d/m/Y')
                     ->sortable(),
+
                 TextColumn::make('end_date')
                     ->label('Check-out')
                     ->date('d/m/Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true), // OCULTO
 
-                SelectColumn::make('status')
+                // --- ================================== ---
+                // --- ¡COLUMNA DE ESTADO REEMPLAZADA! ---
+                // --- ================================== ---
+                BadgeColumn::make('status')
                     ->label('Estado Reserva')
-                    ->options([
+                    ->colors([
+                        'gray' => 'pending',
+                        'warning' => 'confirmed',
+                        'success' => 'completed',
+                        'danger' => 'cancelled',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => [
                         'pending' => 'Pendiente',
                         'confirmed' => 'Confirmada',
+                        'completed' => 'Completada',
                         'cancelled' => 'Cancelada',
-                    ])
-                    ->sortable(),
+                    ][$state] ?? $state) // Convierte 'confirmed' en 'Confirmada'
+                    ->sortable(), // <-- VISIBLE
 
                 SelectColumn::make('payment_status')
                     ->label('Estado Pago')
@@ -207,17 +217,19 @@ class BookingResource extends Resource
                         Booking::STATUS_DEPOSIT_PAID => 'Señal Pagada',
                         Booking::STATUS_FULL_PAID => 'Pagado Total',
                     ])
-                    ->sortable(),
+                    ->sortable(), // <-- VISIBLE
 
                 TextColumn::make('amount_paid')
                     ->label('Pagado')
                     ->money('EUR')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true), // <-- OCULTO
 
                 TextColumn::make('total_price')
                     ->label('Total')
                     ->money('EUR')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true), // <-- OCULTO
             ])
             ->filters([
                 //
@@ -229,6 +241,68 @@ class BookingResource extends Resource
                     ->icon('heroicon-o-document-arrow-down')
                     ->url(fn(Booking $record): string => route('booking.contract.download', $record))
                     ->openUrlInNewTab(),
+
+                Action::make('Finalizar Reserva')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation() 
+                    ->modalHeading('Finalizar Reserva y Notificar Cliente')
+                    ->modalDescription('¿Estás seguro de que quieres finalizar esta reserva? Se calcularán los KM extra y se enviará un email de cierre al cliente.')
+                    ->hidden(fn(Booking $record): bool => $record->status !== 'confirmed') 
+                    ->action(function (Booking $record) {
+                        
+                        $record->load('campervan');
+                        
+                        if (empty($record->km_llegada) || empty($record->km_salida)) {
+                            Notification::make()
+                                ->title('Error: Faltan datos')
+                                ->body('Por favor, edita la reserva e introduce el Kilometraje de Salida y Llegada antes de finalizarla.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Calcular KM extra
+                        $campervan = $record->campervan;
+                        $kmSalida = (int)$record->km_salida;
+                        $kmLlegada = (int)$record->km_llegada;
+                        $pricePerExtraKm = (float)$campervan->price_per_extra_km;
+                        $kmLimitPerDay = (int)$campervan->km_limit;
+                        $cargo = 0.00;
+                        $kmExtra = 0;
+
+                        if ($kmLimitPerDay > 0 && $pricePerExtraKm > 0 && $kmLlegada > $kmSalida) {
+                            $nights = Carbon::parse($record->start_date)->diffInDays(Carbon::parse($record->end_date));
+                            $totalNights = $nights > 0 ? $nights : 1;
+                            $totalKmLimit = $kmLimitPerDay * $totalNights;
+                            $kmRecorridos = $kmLlegada - $kmSalida;
+                            $kmExtra = $kmRecorridos - $totalKmLimit;
+                            if ($kmExtra > 0) {
+                                $cargo = $kmExtra * $pricePerExtraKm;
+                            } else {
+                                $kmExtra = 0; 
+                            }
+                        }
+
+                        // Actualizar el estado
+                        $record->update(['status' => 'completed']); 
+
+                        // Enviar el email
+                        try {
+                            Mail::to($record->customer_email)->send(new BookingClosedMail($record, $cargo, $kmExtra));
+                            Notification::make()
+                                ->title('¡Reserva Finalizada!')
+                                ->body('El email de cierre con los cargos extra ha sido enviado al cliente.')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Error al enviar email')
+                                ->body('La reserva se ha finalizado, pero ha fallado el envío del email: ' . $e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
 
                 Action::make('Cancelar')
                     ->action(fn(Booking $record) => $record->update(['status' => 'cancelled']))
@@ -243,14 +317,14 @@ class BookingResource extends Resource
                 ]),
             ]);
     }
-
+    
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-
+    
     public static function getPages(): array
     {
         return [

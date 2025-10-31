@@ -18,6 +18,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\GlobalStatsWidget;
+use App\Filament\Widgets\BookingsChart;
+use App\Filament\Widgets\CampervanIncomeChart;
+use App\Filament\Widgets\YearFilterWidget;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -40,7 +43,10 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
-                GlobalStatsWidget::class,
+                YearFilterWidget::class,       // <-- 1. El filtro
+                GlobalStatsWidget::class,      // <-- 2. Las tarjetas
+                BookingsChart::class,          // <-- 3. Gráfico de barras
+                CampervanIncomeChart::class,   // <-- 4. Gráfico de donut
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -4,49 +4,65 @@ namespace App\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use App\Models\Booking;     // <-- Importante
-use App\Models\Maintenance; // <-- Importante
+use App\Models\Booking;
+use App\Models\Maintenance;
+use Filament\Widgets\Concerns\InteractsWithPageFilters; 
 
 class GlobalStatsWidget extends BaseWidget
 {
+    protected static ?int $sort = 2; // Después del filtro
+
+    // Propiedad pública (debe coincidir con el default del filtro)
+    public ?string $selectedYear;
+    
+    // Escucha el evento 'yearChanged'
+    protected $listeners = ['yearChanged' => 'updateYear'];
+
+    // Se ejecuta al cargar
+    public function mount(): void
+    {
+        $this->selectedYear = (string) now()->year;
+    }
+
+    // Actualiza la propiedad cuando el filtro cambia
+    public function updateYear(string $year): void
+    {
+        $this->selectedYear = $year;
+    }
+    
     protected function getStats(): array
     {
-        // --- 1. Calcular Ingresos Totales ---
-        // Suma el 'total_price' de todas las reservas 'confirmed'
-        $totalRevenue = Booking::where('status', 'confirmed') 
-            ->sum('total_price');
-
-        // --- 2. Calcular Gastos Totales ---
-        // Suma el 'cost' de todos los mantenimientos
-        $totalCosts = Maintenance::sum('cost');
+        $yearLabel = $this->selectedYear === 'all' ? 'Global' : $this->selectedYear;
         
-        // --- 3. Calcular Beneficio Neto ---
+        $revenueQuery = Booking::whereIn('status', ['confirmed', 'completed']);
+        $bookingsQuery = Booking::whereIn('status', ['confirmed', 'completed']);
+
+        if ($this->selectedYear !== 'all') {
+            $revenueQuery->whereYear('start_date', $this->selectedYear);
+            $bookingsQuery->whereYear('start_date', $this->selectedYear);
+        }
+
+        $totalRevenue = $revenueQuery->sum('total_price');
+        $totalBookings = $bookingsQuery->count();
+        $totalCosts = Maintenance::sum('cost');
         $netProfit = $totalRevenue - $totalCosts;
 
-        // --- 4. Contar Reservas ---
-        $totalBookings = Booking::where('status', 'confirmed')->count();
-
-        // --- 5. Devolver las Tarjetas (Stats) ---
         return [
-            Stat::make('Ingresos Totales (Global)', number_format($totalRevenue, 2) . ' €')
-                ->description('Suma de todas las reservas confirmadas')
-                ->descriptionIcon('heroicon-m-arrow-trending-up')
+            Stat::make('Ingresos (' . $yearLabel . ')', number_format($totalRevenue, 2) . ' €')
+                ->description('Reservas en ' . $yearLabel)
                 ->color('success'),
             
-            Stat::make('Gastos Totales (Global)', number_format($totalCosts, 2) . ' €')
-                ->description('Suma de todos los mantenimientos')
-                ->descriptionIcon('heroicon-m-arrow-trending-down')
+            Stat::make('Reservas (' . $yearLabel . ')', $totalBookings)
+                ->description('Reservas en ' . $yearLabel)
+                ->color('info'),
+
+            Stat::make('Gastos (Histórico)', number_format($totalCosts, 2) . ' €')
+                ->description('Todos los mantenimientos')
                 ->color('danger'),
             
-            Stat::make('Beneficio Neto (Global)', number_format($netProfit, 2) . ' €')
-                ->description('Ingresos - Gastos')
-                ->descriptionIcon('heroicon-m-currency-euro')
+            Stat::make('Beneficio (' . $yearLabel . ')', number_format($netProfit, 2) . ' €')
+                ->description('Ingresos ' . $yearLabel . ' - Gastos Históricos')
                 ->color($netProfit >= 0 ? 'success' : 'danger'),
-
-            Stat::make('Reservas Confirmadas', $totalBookings)
-                ->description('Número total de reservas completadas')
-                ->descriptionIcon('heroicon-m-calendar-days')
-                ->color('info'),
         ];
     }
 }
