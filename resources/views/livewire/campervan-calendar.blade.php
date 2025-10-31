@@ -94,35 +94,54 @@
                 <div class="day-cell"></div>
                 @else
                 @php
-                    // ... (lógica PHP para $baseClasses, $priceTextColor, $baseBgColor sin cambios) ...
+                    // ===================================
+                    // LÓGICA DE PRECIO DINÁMICO (Bloque 1)
+                    // ===================================
                     $dateString = $date['date'];
                     $price = round($date['price']);
+                    $basePrice = (float) $campervan->price_per_night; 
+
+                    // Colores por defecto (Verde Esmeralda)
                     $priceTextColor = 'text-emerald-600';
                     $baseBgColor = 'hover:bg-emerald-100';
-                    if ($price >= 160 && $price < 180) {
-                        $priceTextColor='text-orange-600' ;
-                        $baseBgColor='hover:bg-orange-100' ;
-                    } elseif ($price>= 180) {
-                        $priceTextColor = 'text-red-600';
-                        $baseBgColor = 'hover:bg-red-100';
+
+                    if ($basePrice > 0) {
+                        $redThreshold = $basePrice * 1.50;      // Umbral Rojo (50%+)
+                        $orangeThreshold = $basePrice * 1.30;   // Umbral Naranja (30%)
+                        $yellowThreshold = $basePrice * 1.15;   // Umbral Amarillo (15%)
+                        $limeThreshold = $basePrice * 1.07;     // Umbral Lima (7%)
+
+                        if ($price >= $redThreshold) {
+                            $priceTextColor = 'text-red-600';
+                            $baseBgColor = 'hover:bg-red-100';
+                        } elseif ($price >= $orangeThreshold) {
+                            $priceTextColor = 'text-orange-600';
+                            $baseBgColor = 'hover:bg-orange-100';
+                        } elseif ($price >= $yellowThreshold) {
+                            $priceTextColor = 'text-yellow-600';
+                            $baseBgColor = 'hover:bg-yellow-100';
+                        } elseif ($price >= $limeThreshold) {
+                            $priceTextColor = 'text-lime-600';
+                            $baseBgColor = 'hover:bg-lime-100';
+                        }
                     }
+                    // ===================================
+                    // FIN DE LÓGICA DE PRECIO
+                    // ===================================
+
                     $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
                     if ($date['is_disabled']) {
-                        // Aplica is-disabled a fechas pasadas y no disponibles (reservadas/mantenimiento)
                         $baseClasses .= ' text-gray-400 bg-gray-100 cursor-not-allowed is-disabled';
                     } else {
                         $baseClasses .= ' ' . $baseBgColor . ' cursor-pointer';
                     }
-                    // Sobreescribe color si está reservada (rojo)
                     if ($date['is_unavailable'] && !$date['is_maintenance']) {
                         $baseClasses = str_replace([$baseBgColor, 'bg-gray-100', 'text-gray-400'], '', $baseClasses);
                         $baseClasses .= ' is-unavailable bg-red-100 text-red-600 hover:bg-red-200/50 !cursor-not-allowed';
                     }
-                    // Sobreescribe color si es mantenimiento (amarillo) - ¡NUEVA LÓGICA DE PRIORIDAD!
-                    // Esta condición debe ir DESPUÉS de la de is_unavailable para tener prioridad
                     if ($date['is_maintenance']) {
                         $baseClasses = str_replace([$baseBgColor, 'bg-gray-100', 'text-gray-400', 'bg-red-100', 'text-red-600', 'hover:bg-red-200/50'], '', $baseClasses);
-                        $baseClasses .= ' is-maintenance bg-yellow-300 text-yellow-800 !cursor-not-allowed'; // Color base amarillo
+                        $baseClasses .= ' is-maintenance bg-yellow-300 text-yellow-800 !cursor-not-allowed';
                     }
                     if ($date['is_today'] && !$date['is_disabled']) {
                         $baseClasses .= ' today-indicator border-emerald-500';
@@ -136,22 +155,17 @@
                         'date-range-start bg-emerald-500 text-white font-bold hover:bg-emerald-600': dates.checkIn === '{{ $dateString }}',
                         'date-range-end bg-emerald-500 text-white font-bold hover:bg-emerald-600': dates.checkOut === '{{ $dateString }}',
                         'date-in-range bg-emerald-200/50 text-gray-800 rounded-none': isDateInRange('{{ $dateString }}'),
-                        // Ya no necesitamos la clase '!bg-yellow-400...' porque la lógica PHP prioriza el amarillo
-                        // Mantenemos la de error de rango si coincide con fecha de salida
                         '!bg-red-500 !text-white !font-bold !cursor-not-allowed': dates.checkOut === '{{ $dateString }}' && errorMessage.length > 0 && !isMaintenanceDate('{{ $dateString }}')
                     }">
                     <span class="font-semibold text-base">{{ $date['day_of_month'] }}</span>
 
-                    {{-- Mostrar precio SOLO si no está deshabilitado Y NO es mantenimiento --}}
                     @if (!$date['is_disabled'] && !$date['is_maintenance'])
                     <span class="text-xs font-bold leading-none {{ $priceTextColor }}"
                         :class="{
                             'text-white': dates.checkIn === '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}',
-                            'text-gray-800': isDateInRange('{{ $dateString }}') // Para que se vea en rango
+                            'text-gray-800': isDateInRange('{{ $dateString }}')
                         }"
-                        
-                        x-show="dates.checkOut !== '{{ $dateString }}'"
-                        >
+                        x-show="dates.checkOut !== '{{ $dateString }}'">
                         {{ round($date['price']) }}€
                     </span>
                     @endif
@@ -172,24 +186,47 @@
                 <div class="day-header text-xs font-semibold text-gray-500 text-center">{{ $dayName }}</div>
                 @endforeach
 
-                {{-- Días del mes siguiente (APLICA LA MISMA LÓGICA DE ESTILOS QUE EL MES ACTUAL) --}}
+                {{-- Días del mes siguiente --}}
                 @foreach ($nextDates as $date)
                 @if ($date['date'] === null)
                 <div class="day-cell"></div>
                 @else
                 @php
-                    // ... (lógica PHP idéntica a la del mes actual) ...
+                    // ===================================
+                    // LÓGICA DE PRECIO DINÁMICO (Bloque 2)
+                    // ===================================
                     $dateString = $date['date'];
                     $price = round($date['price']);
+                    $basePrice = (float) $campervan->price_per_night; 
+
+                    // Colores por defecto (Verde Esmeralda)
                     $priceTextColor = 'text-emerald-600';
                     $baseBgColor = 'hover:bg-emerald-100';
-                    if ($price >= 160 && $price < 180) {
-                        $priceTextColor='text-orange-600' ;
-                        $baseBgColor='hover:bg-orange-100' ;
-                    } elseif ($price>= 180) {
-                        $priceTextColor = 'text-red-600';
-                        $baseBgColor = 'hover:bg-red-100';
+
+                    if ($basePrice > 0) {
+                        $redThreshold = $basePrice * 1.50;      // Umbral Rojo (50%+)
+                        $orangeThreshold = $basePrice * 1.30;   // Umbral Naranja (30%)
+                        $yellowThreshold = $basePrice * 1.15;   // Umbral Amarillo (15%)
+                        $limeThreshold = $basePrice * 1.07;     // Umbral Lima (7%)
+
+                        if ($price >= $redThreshold) {
+                            $priceTextColor = 'text-red-600';
+                            $baseBgColor = 'hover:bg-red-100';
+                        } elseif ($price >= $orangeThreshold) {
+                            $priceTextColor = 'text-orange-600';
+                            $baseBgColor = 'hover:bg-orange-100';
+                        } elseif ($price >= $yellowThreshold) {
+                            $priceTextColor = 'text-yellow-600';
+                            $baseBgColor = 'hover:bg-yellow-100';
+                        } elseif ($price >= $limeThreshold) {
+                            $priceTextColor = 'text-lime-600';
+                            $baseBgColor = 'hover:bg-lime-100';
+                        }
                     }
+                    // ===================================
+                    // FIN DE LÓGICA DE PRECIO
+                    // ===================================
+                    
                     $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
                     if ($date['is_disabled']) {
                         $baseClasses .= ' text-gray-400 bg-gray-100 cursor-not-allowed is-disabled';
@@ -219,16 +256,13 @@
                     }">
                     <span class="font-semibold text-base">{{ $date['day_of_month'] }}</span>
 
-                    {{-- Mostrar precio SOLO si no está deshabilitado Y NO es mantenimiento --}}
                     @if (!$date['is_disabled'] && !$date['is_maintenance'])
                     <span class="text-xs font-bold leading-none {{ $priceTextColor }}"
                         :class="{
                             'text-white': dates.checkIn === '{{ $dateString }}' || dates.checkOut === '{{ $dateString }}',
                             'text-gray-800': isDateInRange('{{ $dateString }}')
                         }"
-                        
-                        x-show="dates.checkOut !== '{{ $dateString }}'"
-                        >
+                        x-show="dates.checkOut !== '{{ $dateString }}'">
                         {{ round($date['price']) }}€
                     </span>
                     @endif
@@ -260,7 +294,7 @@
     </div>
 
     {{-- Botón de reserva (Sin cambios) --}}
-    <div class="mt-8" wire:ignore> 
+    <div class="mt-8" wire:ignore>
         <button @click="submitBooking"
                 :disabled="!isRangeValid || isSubmitting"
                 class="btn-full w-full py-3 px-6 rounded-lg text-white font-bold shadow-lg transition duration-200 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-emerald-500"
