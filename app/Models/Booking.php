@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-// ¡Añade esto!
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -22,7 +22,7 @@ class Booking extends Model
 
     protected $fillable = [
         'campervan_id',
-        'user_id', 
+        'user_id',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -33,9 +33,12 @@ class Booking extends Model
         'amount_paid',
         'payment_status',
         'payment_due_date',
-        'reminder_sent', // <-- AÑADIR ESTA LÍNEA
-        'km_salida',   // <-- AÑADIR ESTA LÍNEA
-        'km_llegada',  // <-- AÑADIR ESTA LÍNEA
+        'reminder_sent',
+        'km_salida',
+        'km_llegada',
+        'original_price',
+        'discount_amount',
+        'coupon_code',
     ];
 
     protected $casts = [
@@ -64,5 +67,14 @@ class Booking extends Model
     public function getAmountDueAttribute(): float
     {
         return $this->total_price - $this->amount_paid;
+    }
+
+    /**
+     * Define la relación "Muchos a Muchos" con Extra.
+     */
+    public function extras(): BelongsToMany
+    {
+        return $this->belongsToMany(Extra::class, 'booking_extra')
+                    ->withPivot('precio_cobrado'); // ¡Importante para acceder al precio!
     }
 }

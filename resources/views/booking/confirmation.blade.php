@@ -7,7 +7,6 @@
     <title>Reserva Confirmada</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- El CSS personalizado se maneja en resources/css/app.css ahora -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 
@@ -65,6 +64,26 @@
                             @endif
                         </dd>
                     </div>
+                    
+                    {{-- RF8.2: INICIO DESGLOSE DE EXTRAS --}}
+                    @if ($booking->extras->isNotEmpty())
+                    <div class="summary-item pt-4 border-t-2 border-gray-100">
+                        <dt class="summary-label font-bold text-gray-700">Extras Incluidos</dt>
+                        <dd class="summary-value"></dd>
+                    </div>
+                    <div class="px-6 py-2">
+                        <ul class="text-sm text-gray-700 list-disc ml-4 space-y-1">
+                            @foreach ($booking->extras as $extra)
+                            <li class="flex justify-between items-start">
+                                <span>{{ $extra->nombre }}</span>
+                                {{-- Usamos el 'precio_cobrado' de la tabla pivote --}}
+                                <span class="font-medium text-gray-800">{{ number_format($extra->pivot->precio_cobrado, 2) }}€</span>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+                    {{-- FIN RF8.2 --}}
 
                     {{-- 2. SECCIÓN DE DESCUENTO (RF5.1) --}}
                     @if ($booking->discount_amount > 0 && $booking->coupon_code)
@@ -112,7 +131,10 @@
 
             {{-- Botones de acción (Usa la clase componente .btn-primary) --}}
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/" class="btn-primary">
+                <a href="{{ route('booking.contract.download', $booking) }}" class="btn-primary">
+                    Descargar Contrato PDF
+                </a>
+                <a href="/" class="btn-secondary">
                     Ver Otras Autocaravanas
                 </a>
             </div>

@@ -16,6 +16,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "alpinejs": "^3.15.1",
         "flatpickr": "^4.6.13"
     }
 }
