@@ -22,7 +22,7 @@ class CouponController extends Controller
     {
         // Validación de la petición AJAX
         if (!$request->input('code')) {
-            return response()->json(['error' => 'El código de cupón es obligatorio.'], 422);
+            return response()->json(['error' => 'Introduce un cupón.'], 422);
         }
         if (!$request->has('price_for_coupon')) {
              return response()->json(['error' => 'Error de precio. Recargue la página.'], 422);
@@ -42,19 +42,18 @@ class CouponController extends Controller
             $finalPrice = $this->couponService->calculateDiscountedPrice($coupon, $originalPrice);
 
             $discountAmount = $originalPrice - $finalPrice;
-
-            // 3. GUARDAMOS EN SESIÓN (Para que BookingController@store lo lea)
+            
+            // 3. GUARDAMOS EN SESIÓN (SOLO LOS DATOS, SIN MENSAJE)
             Session::put('coupon_code', $coupon->code);
             Session::put('coupon_discount_amount', $discountAmount);
             Session::put('final_price', $finalPrice);
-            Session::put('coupon_success', "Cupón '{$coupon->code}' aplicado con éxito. ¡Has ahorrado " . number_format($discountAmount, 2) . "€!");
             
-            // 4. RESPONDEMOS CON JSON (Para que Alpine lo lea sin recargar)
+            // 4. RESPONDEMOS CON JSON (SIN LA CLAVE 'message')
             return response()->json([
                 'success' => true,
                 'coupon_code' => $coupon->code,
                 'discount_amount' => $discountAmount,
-                'message' => "Cupón '{$coupon->code}' aplicado con éxito. ¡Has ahorrado " . number_format($discountAmount, 2) . "€!"
+                // 'message' => $message  <-- CLAVE ELIMINADA
             ]);
 
         } catch (\Exception $e) {

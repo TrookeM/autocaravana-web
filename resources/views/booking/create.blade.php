@@ -90,8 +90,9 @@
                                     <input type="hidden" name="price_for_coupon" :value="totalConExtras">
                                     <input type="text" name="code" x-model="couponCodeInput" placeholder="Introduce el código"
                                         class="flex-grow border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-sm py-2 px-3">
+                                    
                                     <button type="button" @click.prevent="applyCoupon"
-                                        class="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition duration-300 whitespace-nowrap">
+                                        class="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition duration-300 whitespace-nowrap cursor-pointer">
                                         Aplicar
                                     </button>
                                 </div>
@@ -99,7 +100,7 @@
                                 {{-- Botón para limpiar campo --}}
                                 <div class="flex justify-end" x-show="couponCodeInput">
                                     <button type="button" @click="clearField()"
-                                        class="text-gray-500 hover:text-gray-700 text-sm flex items-center space-x-1">
+                                        class="text-gray-500 hover:text-gray-700 text-sm flex items-center space-x-1 cursor-pointer">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
@@ -113,12 +114,13 @@
                         <template x-if="couponCodeApplied">
                             <div class="space-y-3">
                                 <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
-                                    <div class="mb-2">
+                                    <div class="mb-3">
                                         <span class="font-semibold text-emerald-800 text-lg" x-text="couponCodeApplied"></span>
                                         <p class="text-sm text-emerald-600 mt-1" x-text="'Ahorras: ' + couponDiscount.toFixed(2) + '€'"></p>
                                     </div>
+
                                     <button type="button" @click="removeCoupon()"
-                                        class="text-blue-500 hover:text-blue-700 text-sm font-medium underline">
+                                            class="w-full py-2 px-4 border border-gray-300 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors cursor-pointer">
                                         Usar otro cupón
                                     </button>
                                 </div>
