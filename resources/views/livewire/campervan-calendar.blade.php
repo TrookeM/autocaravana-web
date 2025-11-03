@@ -5,13 +5,11 @@
         pricePerNight: {{ $campervan->price_per_night }},
         maintenanceDates: {{ $maintenanceDatesJson }}
     })"
-
     @dates-updated.window="updateDates($event.detail.unavailable, $event.detail.maintenance)"
     >
 
-    {{-- Información de reserva (Sin cambios) --}}
+    {{-- Información de reserva --}}
     <div class="mb-6 p-4 border rounded-xl bg-emerald-50 border-emerald-200" wire:ignore>
-        {{-- ... (contenido del resumen de reserva) ... --}}
         <div class="flex justify-between items-center text-sm font-semibold mb-2">
             <span class="text-gray-600">Fechas seleccionadas:</span>
             <span class="text-emerald-600" x-text="nightsCount">0</span>
@@ -42,17 +40,17 @@
         </p>
     </div>
 
-    {{-- Nota de aclaración del precio (Sin cambios) --}}
+    {{-- Nota de aclaración del precio --}}
     <p class="mt-4 text-sm text-gray-500 text-center">
         El precio mostrado es por noche
     </p>
 
-    {{-- Navegación (Sin cambios) --}}
+    {{-- Navegación --}}
     <div class="calendar-navigation flex justify-between items-center mb-4">
-        {{-- ... (botones prev/next y título del mes) ... --}}
+        
         <button wire:click="previousMonth"
                 @if(!$canGoBack) disabled @endif
-                class="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                class="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 aria-label="Mes anterior">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -69,7 +67,7 @@
         </div>
 
         <button wire:click="nextMonth"
-                class="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition"
+                class="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition cursor-pointer"
                 aria-label="Mes siguiente">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -86,7 +84,7 @@
                 {{ $currentMonthName }} {{ $currentYear }}
             </h3>
             <div class="calendar-grid grid grid-cols-7 gap-1" wire:key="current-month-{{ $currentYear }}-{{ $currentMonth }}-{{ $timestamp }}">
-                {{-- Cabecera días (Sin cambios) --}}
+                {{-- Cabecera días --}}
                 @foreach ($dayNames as $dayName)
                 <div class="day-header text-xs font-semibold text-gray-500 text-center">{{ $dayName }}</div>
                 @endforeach
@@ -97,22 +95,18 @@
                 <div class="day-cell"></div>
                 @else
                 @php
-                    // ===================================
-                    // LÓGICA DE PRECIO DINÁMICO (Bloque 1)
-                    // ===================================
                     $dateString = $date['date'];
                     $price = round($date['price']);
                     $basePrice = (float) $campervan->price_per_night; 
 
-                    // Colores por defecto (Verde Esmeralda)
                     $priceTextColor = 'text-emerald-600';
                     $baseBgColor = 'hover:bg-emerald-100';
 
                     if ($basePrice > 0) {
-                        $redThreshold = $basePrice * 1.50;      // Umbral Rojo (50%+)
-                        $orangeThreshold = $basePrice * 1.30;   // Umbral Naranja (30%)
-                        $yellowThreshold = $basePrice * 1.15;   // Umbral Amarillo (15%)
-                        $limeThreshold = $basePrice * 1.07;     // Umbral Lima (7%)
+                        $redThreshold = $basePrice * 1.50;
+                        $orangeThreshold = $basePrice * 1.30;
+                        $yellowThreshold = $basePrice * 1.15;
+                        $limeThreshold = $basePrice * 1.07; 
 
                         if ($price >= $redThreshold) {
                             $priceTextColor = 'text-red-600';
@@ -128,9 +122,6 @@
                             $baseBgColor = 'hover:bg-lime-100';
                         }
                     }
-                    // ===================================
-                    // FIN DE LÓGICA DE PRECIO
-                    // ===================================
 
                     $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
                     if ($date['is_disabled']) {
@@ -184,7 +175,7 @@
                 {{ $nextMonthName }} {{ $nextYear }}
             </h3>
             <div class="calendar-grid grid grid-cols-7 gap-1" wire:key="next-month-{{ $nextYear }}-{{ $nextMonth }}-{{ $timestamp }}">
-                {{-- Cabecera días (Sin cambios) --}}
+                {{-- Cabecera días --}}
                 @foreach ($dayNames as $dayName)
                 <div class="day-header text-xs font-semibold text-gray-500 text-center">{{ $dayName }}</div>
                 @endforeach
@@ -195,22 +186,18 @@
                 <div class="day-cell"></div>
                 @else
                 @php
-                    // ===================================
-                    // LÓGICA DE PRECIO DINÁMICO (Bloque 2)
-                    // ===================================
                     $dateString = $date['date'];
                     $price = round($date['price']);
                     $basePrice = (float) $campervan->price_per_night; 
 
-                    // Colores por defecto (Verde Esmeralda)
                     $priceTextColor = 'text-emerald-600';
                     $baseBgColor = 'hover:bg-emerald-100';
 
                     if ($basePrice > 0) {
-                        $redThreshold = $basePrice * 1.50;      // Umbral Rojo (50%+)
-                        $orangeThreshold = $basePrice * 1.30;   // Umbral Naranja (30%)
-                        $yellowThreshold = $basePrice * 1.15;   // Umbral Amarillo (15%)
-                        $limeThreshold = $basePrice * 1.07;     // Umbral Lima (7%)
+                        $redThreshold = $basePrice * 1.50;
+                        $orangeThreshold = $basePrice * 1.30;
+                        $yellowThreshold = $basePrice * 1.15;
+                        $limeThreshold = $basePrice * 1.07;
 
                         if ($price >= $redThreshold) {
                             $priceTextColor = 'text-red-600';
@@ -226,9 +213,6 @@
                             $baseBgColor = 'hover:bg-lime-100';
                         }
                     }
-                    // ===================================
-                    // FIN DE LÓGICA DE PRECIO
-                    // ===================================
                     
                     $baseClasses = 'day-cell w-full h-14 rounded-md transition duration-150 border border-transparent flex flex-col items-center justify-center p-1';
                     if ($date['is_disabled']) {
@@ -276,7 +260,7 @@
         </div>
     </div>
 
-    {{-- Leyenda (Sin cambios) --}}
+    {{-- Leyenda --}}
     <div class="mt-6 pt-4 border-t border-gray-200 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
         <div class="flex items-center">
             <span class="w-4 h-4 rounded-full bg-white border border-gray-300 mr-2"></span>
@@ -296,7 +280,7 @@
         </div>
     </div>
 
-    {{-- Botón de reserva (Sin cambios) --}}
+    {{-- Botón de reserva --}}
     <div class="mt-8" wire:ignore>
         <button @click="submitBooking"
                 :disabled="!isRangeValid || isSubmitting"
