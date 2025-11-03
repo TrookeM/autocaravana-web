@@ -11,35 +11,58 @@
 
 <body class="font-sans antialiased bg-white text-gray-800 pt-20"> {{-- pt-20 para compensar el navbar fijo --}}
 
-    {{-- NAVBAR --}}
-    <nav class="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-lg z-50 transition duration-300">
+    <nav x-data="{ isOpen: false }" class="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-lg z-50 transition duration-300">
         <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-            <a href="#inicio" class="flex items-center gap-2">
+            
+            <a href="#inicio" class="flex items-center gap-2 cursor-pointer">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-8 h-8"> <span class="text-xl font-extrabold text-emerald-700">Campers</span>
             </a>
 
             <ul class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
-                <li><a href="#inicio" class="hover:text-emerald-700 transition duration-200">Inicio</a></li>
-                <li><a href="#flota" class="hover:text-emerald-700 transition duration-200">Flota</a></li>
-                <li><a href="#ventajas" class="hover:text-emerald-700 transition duration-200">Ventajas</a></li>
-                <li><a href="{{ route('contact') }}" class="hover:text-emerald-700 transition duration-200">Contacto</a></li>
+                <li><a href="#inicio" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Inicio</a></li>
+                <li><a href="#flota" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Flota</a></li>
+                <li><a href="#ventajas" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Ventajas</a></li>
+                <li><a href="{{ route('contact') }}" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Contacto</a></li>
             </ul>
 
-            {{-- Aquí también usamos la ruta con nombre 'contact' --}}
-            <a href="{{ route('contact') }}" class="hidden md:inline-block px-5 py-2 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-200 shadow-md">
+            <a href="{{ route('contact') }}" class="hidden md:inline-block px-5 py-2 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-200 shadow-md cursor-pointer">
                 Reservar
             </a>
 
-            <button class="md:hidden text-gray-700 hover:text-emerald-700 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button @click="isOpen = !isOpen" class="md:hidden text-gray-700 hover:text-emerald-700 transition cursor-pointer" aria-label="Abrir menú">
+                
+                <svg x-show="!isOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+
+                <svg x-show="isOpen" style="display: none;" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
+
+        <div x-show="isOpen"
+             @click.away="isOpen = false"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="md:hidden border-t border-gray-100"
+             style="display: none;"> <ul class="flex flex-col py-4 px-6 text-gray-700 font-medium">
+                <li class="border-b border-gray-100"><a href="#inicio" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Inicio</a></li>
+                <li class="border-b border-gray-100"><a href="#flota" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Flota</a></li>
+                <li class="border-b border-gray-100"><a href="#ventajas" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Ventajas</a></li>
+                <li class="border-b border-gray-100"><a href="{{ route('contact') }}" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Contacto</a></li>
+                <li class="mt-4">
+                    <a href="{{ route('contact') }}" class="block text-center w-full px-5 py-2 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-200 shadow-md">
+                        Reservar
+                    </a>
+                </li>
+            </ul>
+        </div>
     </nav>
-
-
-    <!-- HERO -->
     <header id="inicio" class="hero relative flex items-center justify-center h-[90vh] text-center text-white overflow-hidden -mt-20">
         <img src="https://images.unsplash.com/photo-1527786356703-4b100091cd2c?auto=format&fit=crop&w=1920&q=80"
             alt="Autocaravana en paisaje natural"
@@ -66,7 +89,6 @@
     </header>
 
 
-    <!-- ¿POR QUÉ ELEGIRNOS? / VENTAJAS -->
     <section id="ventajas" class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-6 text-center">
             <h2 class="text-4xl font-extrabold text-gray-900 mb-4">¿Por qué elegirnos?</h2>
@@ -105,7 +127,6 @@
     </section>
 
 
-    <!-- NUESTRA FLOTA -->
     <section id="flota" class="py-20 bg-white">
         <div class="container mx-auto px-6 text-center">
             <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Nuestra Flota</h2>
@@ -142,7 +163,6 @@
     </section>
 
 
-    <!-- CTA FINAL / CONTACTO -->
     <section id="contacto" class="bg-emerald-800 text-white py-20 text-center">
         <h2 class="text-4xl font-extrabold mb-4">¿Listo para tu próxima aventura?</h2>
         <p class="text-xl mb-10 text-emerald-100">Reserva hoy mismo tu camper ideal y empieza tu viaje por carretera con la mejor garantía.</p>
@@ -154,7 +174,6 @@
     </section>
 
 
-    <!-- FOOTER -->
     <footer class="bg-emerald-900 text-emerald-50 py-12">
         <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10">
 

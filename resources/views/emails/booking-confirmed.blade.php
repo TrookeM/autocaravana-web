@@ -38,6 +38,17 @@
             background-color: #fffbeb; border: 1px solid #fef08a; color: #b45309;
         }
 
+        /* Estilo para la lista de extras */
+        .extras-list {
+            margin: 0; 
+            padding-left: 20px; 
+            text-align: left; 
+            font-size: 0.95em;
+        }
+        .extras-list li {
+            margin-bottom: 5px;
+        }
+
     </style>
 </head>
 <body>
@@ -81,16 +92,32 @@
                     </td>
                 </tr>
 
+                @if ($booking->extras->isNotEmpty())
+                    <tr>
+                        <th style="vertical-align: top; padding-top: 10px;">Extras Contratados:</th>
+                        <td style="padding-top: 10px;">
+                            <ul class="extras-list">
+                                @foreach ($booking->extras as $extra)
+                                    <li>
+                                        {{ $extra->nombre }}
+                                        ({{ number_format($extra->pivot->precio_cobrado, 2) }}€)
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </td>
+                    </tr>
+                @endif
                 @if ($booking->discount_amount > 0 && $booking->coupon_code)
                     <tr class="price-breakdown">
-                        <th style="border-top: 2px dashed #eee; padding-top: 15px;">Precio Original:</th>
+                        <th style="border-top: 2px dashed #eee; padding-top: 15px;">Subtotal (Base + Extras):</th>
                         <td style="border-top: 2px dashed #eee; padding-top: 15px;" class="original-price">{{ number_format($booking->original_price, 2) }}€</td>
                     </tr>
                     <tr class="price-breakdown">
                         <th class="coupon-label">Cupón ({{ $booking->coupon_code }}):</th>
                         <td class="coupon-value">- {{ number_format($booking->discount_amount, 2) }}€</td>
                     </tr>
-                @endif
+                @else
+                    @endif
 
                 <tr class="price-breakdown">
                     <th class="total-final-label">PRECIO TOTAL FINAL:</th>

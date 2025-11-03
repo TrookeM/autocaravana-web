@@ -2,8 +2,11 @@ import './bootstrap';
 import flatpickr from "flatpickr";
 import { Spanish } from "flatpickr/dist/l10n/es";
 import "flatpickr/dist/flatpickr.min.css";
-import Alpine from 'alpinejs';
-window.Alpine = Alpine;
+
+// --- ELIMINADO ---
+// import Alpine from 'alpinejs';
+// window.Alpine = Alpine;
+// -----------------
 
 // Configuración de Flatpickr
 flatpickr.setDefaults({
@@ -12,6 +15,7 @@ flatpickr.setDefaults({
 });
 window.flatpickr = flatpickr;
 
+// Livewire ejecutará esto automáticamente cuando SU Alpine esté listo.
 document.addEventListener('alpine:init', () => {
 
     // LÓGICA 1: CALENDARIO
@@ -26,6 +30,12 @@ document.addEventListener('alpine:init', () => {
         isSubmitting: false,
         totalPrice: 0,
         csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+
+        // Función para actualizar las fechas desde Livewire
+        updateDates(unavailableJson, maintenanceJson) {
+            this.unavailableDates = new Set(JSON.parse(unavailableJson));
+            this.maintenanceDates = new Set(JSON.parse(maintenanceJson));
+        },
 
         get nightsCount() {
             if (!this.dates.checkIn || !this.dates.checkOut) return 0;
@@ -303,5 +313,6 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
-// INICIAR ALPINE
-Alpine.start();
+// --- ELIMINADO ---
+// Alpine.start();
+// -----------------

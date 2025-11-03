@@ -4,15 +4,51 @@
     <meta charset="UTF-8">
     <title>Contrato de Alquiler #{{ $booking->id }}</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; }
-        .container { width: 90%; margin: auto; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+        .container { width: 95%; margin: auto; }
         .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { margin: 0; }
-        .details-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .details-table th, .details-table td {
-            border: 1px solid #ddd; padding: 8px; text-align: left;
+        .header h1 { margin: 0; font-size: 20px; }
+        .header h2 { margin: 0; font-size: 16px; font-weight: normal; }
+        
+        h3 { 
+            font-size: 16px; 
+            margin-top: 30px; 
+            margin-bottom: 10px; 
+            border-bottom: 1px solid #eee; 
+            padding-bottom: 5px;
         }
-        .details-table th { background-color: #f4f4f4; }
+
+        .details-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
+        .details-table th, .details-table td {
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left;
+            /* Evita que las celdas de la tabla se partan entre páginas */
+            page-break-inside: avoid;
+        }
+        .details-table th { background-color: #f4f4f4; width: 30%; }
+        
+        /* Estilos para la tabla de costes */
+        .costs-table th { background-color: #f9f9f9; }
+        .costs-table .total-row th, .costs-table .total-row td {
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #f0f0f0;
+        }
+        .costs-table .discount-row td {
+            color: #D90000;
+            font-weight: bold;
+        }
+        .costs-table .due-row td {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+
         .footer { margin-top: 40px; }
         .signature { margin-top: 60px; width: 40%; float: left; }
     </style>
@@ -56,22 +92,53 @@
             </tr>
         </table>
         
+        @if($booking->extras->isNotEmpty())
+            <h3>Extras Contratados</h3>
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70%;">Extra</th>
+                        <th style="width: 30%;">Coste Cobrado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($booking->extras as $extra)
+                        <tr>
+                            <td>{{ $extra->nombre }}</td>
+                            <td>{{ number_format($extra->pivot->precio_cobrado, 2) }}€</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
         <h3>Costes</h3>
-        <table class="details-table">
+        <table class="details-table costs-table">
             <tr>
-                <th>Precio Total</th>
+                <th>Subtotal (Precio base + Extras)</th>
+                <td>{{ number_format($booking->original_price, 2) }}€</td>
+            </tr>
+            
+            @if($booking->discount_amount > 0)
+                <tr class="discount-row">
+                    <th>Descuento (Cupón: {{ $booking->coupon_code }})</th>
+                    <td>-{{ number_format($booking->discount_amount, 2) }}€</td>
+                </tr>
+            @endif
+            
+            <tr class="total-row">
+                <th>Precio Total Final</th>
                 <td>{{ number_format($booking->total_price, 2) }}€</td>
             </tr>
             <tr>
                 <th>Cantidad Pagada</th>
                 <td>{{ number_format($booking->amount_paid, 2) }}€</td>
             </tr>
-            <tr>
+            <tr class="due-row">
                 <th>Cantidad Pendiente</th>
-                <td style="font-weight: bold;">{{ number_format($booking->amount_due, 2) }}€</td>
+                <td>{{ number_format($booking->amount_due, 2) }}€</td>
             </tr>
         </table>
-
         <div class="footer">
             <p>Ambas partes, arrendador y arrendatario, aceptan los términos y condiciones...</p>
             

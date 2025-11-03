@@ -4,7 +4,10 @@
         campervanId: {{ $campervan->id }},
         pricePerNight: {{ $campervan->price_per_night }},
         maintenanceDates: {{ $maintenanceDatesJson }}
-    })">
+    })"
+
+    @dates-updated.window="updateDates($event.detail.unavailable, $event.detail.maintenance)"
+    >
 
     {{-- Información de reserva (Sin cambios) --}}
     <div class="mb-6 p-4 border rounded-xl bg-emerald-50 border-emerald-200" wire:ignore>

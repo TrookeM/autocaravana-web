@@ -97,7 +97,6 @@ class CampervanCalendar extends Component
         $this->maintenanceDatesJson = json_encode(array_keys($maintenance)); // JSON para Alpine sigue igual
     }
 
-    // ... (nextMonth, previousMonth, getCanGoBackProperty - sin cambios) ...
     public function nextMonth(): void
     {
         $currentDate = Carbon::create($this->currentYear, $this->currentMonth, 1);
@@ -108,6 +107,13 @@ class CampervanCalendar extends Component
         $this->timestamp = now()->timestamp;
 
         $this->loadUnavailableDates();
+
+        // ===== ¡CORRECCIÓN AÑADIDA! =====
+        // Avisamos a Alpine de que las fechas han cambiado
+        $this->dispatch('dates-updated', 
+            unavailable: $this->unavailableDatesJson, 
+            maintenance: $this->maintenanceDatesJson
+        );
     }
 
     public function previousMonth(): void
@@ -122,6 +128,13 @@ class CampervanCalendar extends Component
             $this->timestamp = now()->timestamp;
 
             $this->loadUnavailableDates();
+            
+            // ===== ¡CORRECCIÓN AÑADIDA! =====
+            // Avisamos a Alpine de que las fechas han cambiado
+            $this->dispatch('dates-updated', 
+                unavailable: $this->unavailableDatesJson, 
+                maintenance: $this->maintenanceDatesJson
+            );
         }
     }
 
@@ -205,4 +218,3 @@ class CampervanCalendar extends Component
         ]);
     }
 }
-
