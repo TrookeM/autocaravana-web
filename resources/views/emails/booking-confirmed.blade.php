@@ -92,15 +92,15 @@
                     </td>
                 </tr>
 
-                @if ($booking->extras->isNotEmpty())
+                @if ($booking->inventoryItems->isNotEmpty())
                     <tr>
                         <th style="vertical-align: top; padding-top: 10px;">Extras Contratados:</th>
                         <td style="padding-top: 10px;">
                             <ul class="extras-list">
-                                @foreach ($booking->extras as $extra)
+                                @foreach ($booking->inventoryItems as $item)
                                     <li>
-                                        {{ $extra->nombre }}
-                                        ({{ number_format($extra->pivot->precio_cobrado, 2) }}€)
+                                        {{ $item->name }}
+                                        ({{ number_format($item->pivot->precio_cobrado, 2) }}€)
                                     </li>
                                 @endforeach
                             </ul>

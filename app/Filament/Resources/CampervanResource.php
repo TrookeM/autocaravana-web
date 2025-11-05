@@ -21,7 +21,9 @@ use Filament\Forms\Components\TimePicker;
 
 // --- Imports de Relation Manager y Widget ---
 use App\Filament\Resources\CampervanResource\RelationManagers\MaintenancesRelationManager;
-use App\Filament\Resources\CampervanResource\Widgets\CampervanStatsWidget; // <-- ¡LÍNEA AÑADIDA!
+use App\Filament\Resources\CampervanResource\Widgets\CampervanStatsWidget;
+// --- ¡¡NUEVA LÍNEA AÑADIDA!! ---
+use App\Filament\Resources\CampervanResource\RelationManagers\InventoryItemsRelationManager;
 
 class CampervanResource extends Resource
 {
@@ -80,7 +82,6 @@ class CampervanResource extends Resource
                             ->prefix('€')
                             ->required(),
 
-                        // --- CAMPOS DE KILOMETRAJE (ACTUALIZADOS) ---
                         TextInput::make('km_limit')
                             ->label('Límite de KM por Día')
                             ->numeric()
@@ -94,7 +95,6 @@ class CampervanResource extends Resource
                             ->prefix('€')
                             ->helperText('Coste por cada KM que exceda el límite.')
                             ->nullable(),
-                        // --- ================================== ---
 
                         TimePicker::make('check_in_time')
                             ->label('Hora de Check-in')
@@ -192,8 +192,8 @@ class CampervanResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Registramos el nuevo manager
             MaintenancesRelationManager::class,
+            InventoryItemsRelationManager::class, // <-- ¡¡NUEVA LÍNEA AÑADIDA!!
         ];
     }
 

@@ -23,7 +23,7 @@
             data-base-price="{{ $base_price ?? 0 }}"
             data-nights="{{ $nights }}"
             
-            data-extras='{!! $extras->mapWithKeys(fn($e) => [$e->id => ['precio'=> $e->precio, 'es_por_dia' => $e->es_por_dia]])->toJson() !!}'
+            data-extras='{!! $extras->mapWithKeys(fn($item) => [$item->id => ['precio'=> (float)$item->pivot->precio, 'es_por_dia' => $item->pivot->es_por_dia]])->toJson() !!}'
             
             data-old-extras='{!! json_encode(old('extras', [])) !!}'
             data-deposit-percentage="{{ App\Models\Booking::DEPOSIT_PERCENTAGE }}"
@@ -176,23 +176,24 @@
                         <div class="mt-6 pt-6 border-t border-gray-200">
                             <h3 class="text-2xl font-bold text-gray-700 mb-6">Añade Extras Opcionales</h3>
                             <div class="space-y-3">
-                                @forelse ($extras as $extra)
+
+                                @forelse ($extras as $item)
                                 <label class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition cursor-pointer">
                                     <div>
-                                        <span class="font-semibold text-gray-800">{{ $extra->nombre }}</span>
-                                        <p class="text-sm text-gray-600">{{ number_format($extra->precio, 2) }}€ <span class="font-normal">{{ $extra->es_por_dia ? 'por día' : 'por alquiler' }}</span></p>
+                                        <span class="font-semibold text-gray-800">{{ $item->name }}</span>
+                                        <p class="text-sm text-gray-600">{{ number_format($item->pivot->precio, 2) }}€ <span class="font-normal">{{ $item->pivot->es_por_dia ? 'por día' : 'por alquiler' }}</span></p>
                                     </div>
                                     <input type="checkbox"
                                         name="extras[]"
-                                        value="{{ $extra->id }}"
+                                        value="{{ $item->id }}"
                                         x-model="selectedExtras"
                                         @change="handleExtraChange()"
                                         class="form-checkbox h-5 w-5 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300">
                                 </label>
                                 @empty
-                                <p class="text-sm text-gray-500">No hay extras disponibles para esta reserva.</p>
+                                <p class="text-sm text-gray-500">No hay extras opcionales disponibles para esta camper.</p>
                                 @endforelse
-                            </div>
+                                </div>
                         </div>
                         <h2 class="text-2xl font-bold text-gray-700 mb-6 pt-6 border-t">Opciones de Pago</h2>
                         <div class="space-y-6">

@@ -10,13 +10,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+// (Asegúrate de que este Enum existe si lo estás usando)
+// use App\Enums\BookingStatus; 
+
 class Booking extends Model
 {
     use HasFactory;
 
-    // ... (tus constantes están bien) ...
+    // --- Constantes de Estado de la Reserva ---
+    // public const STATUS_PENDING_BOOKING = 'pending'; // ¡ELIMINADA! Estaba duplicada
+    public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_ACTIVE = 'active'; 
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+    
+    // --- Constantes de Estado de Pago ---
     public const DEPOSIT_PERCENTAGE = 0.30;
-    public const STATUS_PENDING = 'pending';
+    public const STATUS_PENDING = 'pending'; // Este 'pending' sirve para ambos
     public const STATUS_DEPOSIT_PAID = 'deposit_paid';
     public const STATUS_FULL_PAID = 'full_paid';
 
@@ -39,6 +49,13 @@ class Booking extends Model
         'original_price',
         'discount_amount',
         'coupon_code',
+        'fuel_level_out',
+        'fuel_level_in',
+        'checkout_notes',
+        'extra_charge_km',
+        'extra_charge_fuel',
+        'extra_charge_other',
+        'inventory_checklist_out', 
     ];
 
     protected $casts = [
@@ -47,9 +64,14 @@ class Booking extends Model
         'payment_due_date' => 'date',
         'total_price' => 'decimal:2',
         'amount_paid' => 'decimal:2',
+        'extra_charge_km' => 'decimal:2',
+        'extra_charge_fuel' => 'decimal:2',
+        'extra_charge_other' => 'decimal:2',
+        'inventory_checklist_out' => 'array', 
+        // 'status' => BookingStatus::class, // (Si usaste el Enum)
     ];
 
-    public function campervan(): BelongsTo // <-- Es bueno tipar el retorno
+    public function campervan(): BelongsTo
     {
         return $this->belongsTo(Campervan::class);
     }
@@ -70,11 +92,15 @@ class Booking extends Model
     }
 
     /**
-     * Define la relación "Muchos a Muchos" con Extra.
+     * ==========================================================
+     * ¡RELACIÓN ACTUALIZADA! (RF9.3 Refactor)
+     * ==========================================================
+     * Una reserva tiene muchos items de inventario (los extras que contrató).
      */
-    public function extras(): BelongsToMany
+    public function inventoryItems(): BelongsToMany
     {
-        return $this->belongsToMany(Extra::class, 'booking_extra')
-                    ->withPivot('precio_cobrado'); // ¡Importante para acceder al precio!
+        return $this->belongsToMany(InventoryItem::class, 'booking_inventory_item')
+                        ->withPivot('precio_cobrado', 'quantity_booked')
+                        ->withTimestamps();
     }
 }

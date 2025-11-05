@@ -27,7 +27,7 @@ class BookingConfirmed extends Mailable
     public function __construct(Booking $booking)
     {
         // Almacena la reserva para que esté disponible en la vista
-        $this->booking = $booking; 
+        $this->booking = $booking->load('campervan', 'inventoryItems');
     }
 
     /**

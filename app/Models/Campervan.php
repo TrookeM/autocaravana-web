@@ -8,14 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- ¡AÑADIR ESTE IMPORT!
 
 class Campervan extends Model
 {
     use HasFactory;
 
-    /**
-     * Los atributos que se pueden asignar masivamente.
-     */
     protected $fillable = [
         'name',
         'description',
@@ -27,30 +25,22 @@ class Campervan extends Model
         'no_checkout_booking',
         'check_in_time',
         'check_out_time',
-        'km_limit',           // Limpio el comentario
+        'km_limit',         
         'price_per_extra_km',
     ];
 
-    /**
-     * Define los tipos de datos de los atributos.
-     */
     protected $casts = [
         'is_visible' => 'boolean',
         'allows_deposit' => 'boolean',
-        // El campo JSON se convierte automáticamente en un array/Collection de PHP
         'secondary_images_json' => 'array',
         'no_checkout_booking' => 'boolean',
     ];
 
-    /**
-     * Una autocaravana tiene muchas reservas.
-     */
     public function bookings()
     {
         return $this->hasMany(Booking::class);
     }
 
-    // Método de acceso para obtener las imágenes secundarias de forma más limpia
     public function getSecondaryImagesAttribute(): array
     {
         return $this->secondary_images_json ?? [];
@@ -61,24 +51,27 @@ class Campervan extends Model
         return $this->hasMany(Blocking::class);
     }
 
-    /**
-     * Obtiene todas las reseñas para esta caravana a través de las reservas.
-     */
     public function reviews(): HasManyThrough
     {
-        // Parámetros:
-        // 1. Modelo final (Review)
-        // 2. Modelo intermedio (Booking)
         return $this->hasManyThrough(Review::class, Booking::class);
+    }
+
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
     }
 
     /**
      * ==========================================================
-     * Una autocaravana tiene muchos registros de mantenimiento.
+     * ¡RELACIÓN ACTUALIZADA! (RF9.3 Refactor)
      * ==========================================================
+     * Una camper puede tener muchos items de inventario (incluidos).
      */
-    public function maintenances(): HasMany
+    public function inventoryItems(): BelongsToMany
     {
-        return $this->hasMany(Maintenance::class);
+        return $this->belongsToMany(InventoryItem::class, 'campervan_inventory_item')
+                    // Le decimos a Eloquent que también cargue estos campos de la pivote
+                    ->withPivot('quantity', 'es_opcional', 'precio', 'es_por_dia')
+                    ->withTimestamps();
     }
 }

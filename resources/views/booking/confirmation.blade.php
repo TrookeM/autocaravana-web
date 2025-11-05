@@ -14,7 +14,7 @@
     <div class="container-main">
         <div class="max-w-2xl mx-auto text-center">
 
-            {{-- Icono de éxito (Usa la clase componente .icon-success) --}}
+            {{-- Icono de éxito --}}
             <div class="icon-success">
                 <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -66,18 +66,17 @@
                     </div>
                     
                     {{-- RF8.2: INICIO DESGLOSE DE EXTRAS --}}
-                    @if ($booking->extras->isNotEmpty())
+                    @if ($booking->inventoryItems->isNotEmpty())
                     <div class="summary-item pt-4 border-t-2 border-gray-100">
                         <dt class="summary-label font-bold text-gray-700">Extras Incluidos</dt>
                         <dd class="summary-value"></dd>
                     </div>
                     <div class="px-6 py-2">
                         <ul class="text-sm text-gray-700 list-disc ml-4 space-y-1">
-                            @foreach ($booking->extras as $extra)
+                            @foreach ($booking->inventoryItems as $item)
                             <li class="flex justify-between items-start">
-                                <span>{{ $extra->nombre }}</span>
-                                {{-- Usamos el 'precio_cobrado' de la tabla pivote --}}
-                                <span class="font-medium text-gray-800">{{ number_format($extra->pivot->precio_cobrado, 2) }}€</span>
+                                <span>{{ $item->name }}</span>
+                                <span class="font-medium text-gray-800">{{ number_format($item->pivot->precio_cobrado, 2) }}€</span>
                             </li>
                             @endforeach
                         </ul>

@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\Booking; // Importar Booking
+use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -16,17 +16,12 @@ class PaymentReminderMail extends Mailable
 
     public $booking;
 
-    /**
-     * Create a new message instance.
-     */
     public function __construct(Booking $booking)
     {
-        $this->booking = $booking;
+        // ¡CORRECCIÓN! Cargamos la nueva relación
+        $this->booking = $booking->load('campervan', 'inventoryItems');
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -34,20 +29,13 @@ class PaymentReminderMail extends Mailable
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
-            // Apuntará a una nueva vista que crearemos
             view: 'emails.payment-reminder',
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     */
     public function attachments(): array
     {
         return [];
