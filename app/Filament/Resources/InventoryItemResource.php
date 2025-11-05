@@ -67,7 +67,7 @@ class InventoryItemResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('total_stock')
-                    ->label('Stock Total')
+                    ->label('Stock (Solo afecta a extras)')
                     ->sortable(),
             ])
             ->filters([
