@@ -24,6 +24,9 @@ use App\Filament\Resources\CampervanResource\RelationManagers\MaintenancesRelati
 use App\Filament\Resources\CampervanResource\Widgets\CampervanStatsWidget;
 // --- ¡¡NUEVA LÍNEA AÑADIDA!! ---
 use App\Filament\Resources\CampervanResource\RelationManagers\InventoryItemsRelationManager;
+// --- AÑADIDO PARA RF9.2.b ---
+use App\Filament\Resources\CampervanResource\RelationManagers\GuidesRelationManager;
+
 
 class CampervanResource extends Resource
 {
@@ -193,7 +196,8 @@ class CampervanResource extends Resource
     {
         return [
             MaintenancesRelationManager::class,
-            InventoryItemsRelationManager::class, // <-- ¡¡NUEVA LÍNEA AÑADIDA!!
+            InventoryItemsRelationManager::class, 
+            GuidesRelationManager::class,
         ];
     }
 

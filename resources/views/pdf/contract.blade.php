@@ -27,7 +27,6 @@
             border: 1px solid #ddd; 
             padding: 8px; 
             text-align: left;
-            /* Evita que las celdas de la tabla se partan entre páginas */
             page-break-inside: avoid;
         }
         .details-table th { background-color: #f4f4f4; width: 30%; }
@@ -39,15 +38,20 @@
             font-size: 14px;
             background-color: #f0f0f0;
         }
-        .costs-table .discount-row td {
-            color: #D90000;
+        /* Color verde para descuento por duración */
+        .costs-table .duration-discount-row td {
+            color: #059669; /* Verde */
+            font-weight: bold;
+        }
+        /* Color rojo para descuento por cupón */
+        .costs-table .coupon-discount-row td {
+            color: #D90000; /* Rojo */
             font-weight: bold;
         }
         .costs-table .due-row td {
             font-weight: bold;
             font-size: 13px;
         }
-
 
         .footer { margin-top: 40px; }
         .signature { margin-top: 60px; width: 40%; float: left; }
@@ -114,18 +118,32 @@
 
         <h3>Costes</h3>
         <table class="details-table costs-table">
+            
             <tr>
-                <th>Subtotal (Precio base + Extras)</th>
-                <td>{{ number_format($booking->original_price, 2) }}€</td>
+                <th>Precio Base (Temporada)</th>
+                <td>{{ number_format($base_seasonal_price, 2) }}€</td>
             </tr>
             
-            @if($booking->discount_amount > 0)
-                <tr class="discount-row">
-                    <th>Descuento (Cupón: {{ $booking->coupon_code }})</th>
-                    <td>-{{ number_format($booking->discount_amount, 2) }}€</td>
+            @if ($duration_discount_amount > 0)
+                <tr class="duration-discount-row">
+                    <th>Descuento Larga Estancia</th>
+                    <td>-{{ number_format($duration_discount_amount, 2) }}€</td>
                 </tr>
             @endif
             
+            @if ($extras_price > 0)
+                <tr>
+                    <th>Coste Extras</th>
+                    <td>+{{ number_format($extras_price, 2) }}€</td>
+                </tr>
+            @endif
+
+            @if ($coupon_discount_amount > 0 && $booking->coupon_code)
+                <tr class="coupon-discount-row">
+                    <th>Descuento Cupón ({{ $booking->coupon_code }})</th>
+                    <td>-{{ number_format($coupon_discount_amount, 2) }}€</td>
+                </tr>
+            @endif
             <tr class="total-row">
                 <th>Precio Total Final</th>
                 <td>{{ number_format($booking->total_price, 2) }}€</td>

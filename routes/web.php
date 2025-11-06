@@ -6,7 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Models\Campervan;
 use App\Http\Controllers\BookingController; 
 use App\Http\Controllers\CouponController; // Añadido para gestionar cupones
-use App\Livewire\CampervanCalendar; 
+use App\Http\Controllers\PublicBookingController; // <-- AÑADIDO
 
 // Ruta de inicio (Homepage)
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -36,3 +36,9 @@ Route::post('/coupon/remove', [CouponController::class, 'remove'])->name('coupon
 // Ruta para descargar el contrato en PDF
 Route::get('/booking/{booking}/contract', [BookingController::class, 'downloadContract'])
     ->name('booking.contract.download');
+
+// ==========================================================
+// NUEVA RUTA: PORTAL PÚBLICO DE RESERVA (RF10.1)
+// ==========================================================
+Route::get('/reserva/{token}', PublicBookingController::class)
+    ->name('public.booking.show');

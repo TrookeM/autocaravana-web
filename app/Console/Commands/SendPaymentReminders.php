@@ -26,20 +26,29 @@ class SendPaymentReminders extends Command
      */
     public function handle()
     {
-        $this->info('Buscando reservas para enviar recordatorios...');
+        $this->info('Buscando reservas para enviar recordatorios de pago...');
 
-        // 1. Define la fecha objetivo (exactamente 2 DÍAS desde hoy)
-        $targetDate = Carbon::now()->addDays(2)->toDateString();
+        // ==========================================================
+        // LÓGICA CORREGIDA (RF12.1)
+        // ==========================================================
+        
+        // 1. Define la fecha objetivo:
+        //    Buscamos pagos que venzan exactamente en 7 días.
+        //    (Puedes cambiar addDays(7) a addDays(3) si prefieres 3 días)
+        $targetPaymentDueDate = Carbon::now()->addDays(7)->toDateString();
 
         // 2. Busca las reservas que cumplen las condiciones
-        $bookingsToRemind = Booking::where('start_date', $targetDate)
-            // Usamos la columna correcta (no el 'status' general)
+        $bookingsToRemind = Booking::where('payment_due_date', $targetPaymentDueDate)
+            // Solo reservas con pago parcial
             ->where('payment_status', Booking::STATUS_DEPOSIT_PAID)
-            ->where('reminder_sent', false) // Que no hayamos enviado ya
+            // Que no hayamos enviado ya
+            ->where('reminder_sent', false) 
             ->get();
+        // ==========================================================
+
 
         if ($bookingsToRemind->isEmpty()) {
-            $this->info('No se encontraron reservas que necesiten recordatorio.');
+            $this->info('No se encontraron reservas que necesiten recordatorio para esa fecha.');
             return;
         }
 
@@ -47,7 +56,9 @@ class SendPaymentReminders extends Command
 
         foreach ($bookingsToRemind as $booking) {
             try {
-                Mail::to($booking->customer_email)->send(new PaymentReminderMail($booking));
+                // (Usamos queue() por si son muchos emails, 
+                // pero si tienes QUEUE_CONNECTION=sync funcionará al instante)
+                Mail::to($booking->customer_email)->queue(new PaymentReminderMail($booking));
 
                 $booking->update(['reminder_sent' => true]);
 

@@ -18,8 +18,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PriceRuleResource extends Resource
 {
     protected static ?string $model = PriceRule::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $modelLabel = 'Regla de Precio';
+    protected static ?string $pluralModelLabel = 'Reglas de Precio';
+    protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal'; // (Un icono más chulo)
+    protected static ?string $navigationGroup = 'Gestión de Precios';
+    protected static ?int $navigationSort = 1; // Para que aparezca primero
 
     // app/Filament/Resources/PriceRuleResource.php
 
@@ -127,5 +130,5 @@ class PriceRuleResource extends Resource
             'create' => Pages\CreatePriceRule::route('/create'),
             'edit' => Pages\EditPriceRule::route('/{record}/edit'),
         ];
-    } 
+    }
 }

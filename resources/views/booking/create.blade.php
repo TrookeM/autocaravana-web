@@ -18,24 +18,24 @@
 
         {{-- INICIO DEL FORMULARIO ÚNICO --}}
         <form method="POST"
-            action="{{ route('booking.store') }}"
-            x-data="couponLogic()"
-            data-base-price="{{ $base_price ?? 0 }}"
-            data-nights="{{ $nights }}"
-            
-            data-extras='{!! $extras->mapWithKeys(fn($item) => [$item->id => ['precio'=> (float)$item->pivot->precio, 'es_por_dia' => $item->pivot->es_por_dia]])->toJson() !!}'
-            
-            data-old-extras='{!! json_encode(old('extras', [])) !!}'
-            data-deposit-percentage="{{ App\Models\Booking::DEPOSIT_PERCENTAGE }}"
-            data-due-date="{{ $due_date }}"
-            data-route-apply="{{ route('coupon.apply') }}"
-            data-route-remove="{{ route('coupon.remove') }}"
-            data-session-discount="{{ session('coupon_discount_amount', 0) }}"
-            data-session-code="{{ session('coupon_code') ?? '' }}"
-            data-session-success="{{ session('coupon_success') ?? '' }}"
-            data-session-error="{{ session('coupon_error') ?? '' }}"
-            x-init="initData()"
-            >
+              action="{{ route('booking.store') }}"
+              x-data="couponLogic()"
+              
+              {{-- $base_price aquí es el PRECIO CON DESCUENTO POR DURACIÓN --}}
+              data-base-price="{{ $base_price ?? 0 }}" 
+              
+              data-nights="{{ $nights }}"
+              data-extras='{!! $extras->mapWithKeys(fn($item) => [$item->id => ['precio'=> (float)$item->pivot->precio, 'es_por_dia' => $item->pivot->es_por_dia]])->toJson() !!}'
+              data-old-extras='{!! json_encode(old('extras', [])) !!}'
+              data-deposit-percentage="{{ App\Models\Booking::DEPOSIT_PERCENTAGE }}"
+              data-due-date="{{ $due_date }}"
+              data-route-apply="{{ route('coupon.apply') }}"
+              data-route-remove="{{ route('coupon.remove') }}"
+              data-session-discount="{{ session('coupon_discount_amount', 0) }}"
+              data-session-code="{{ session('coupon_code') ?? '' }}"
+              data-session-success="{{ session('coupon_success') ?? '' }}"
+              data-session-error="{{ session('coupon_error') ?? '' }}"
+              >
             @csrf
 
             <div class="grid-main">
@@ -59,14 +59,46 @@
                             <dt class="summary-label">Noches</dt>
                             <dd class="summary-value">{{ $nights }}</dd>
                         </div>
-                        <div class="summary-item pt-4">
-                            <dt class="summary-label">Precio Base</dt>
-                            <dd class="summary-value font-medium">{{ number_format($base_price, 2) }}€</dd>
-                        </div>
+                        
+                        {{-- 
+                            Estas variables $base_price_before_discount y $duration_discount_amount
+                            vendrán del BookingController@create (Paso 2)
+                        --}}
+                        @if(isset($base_price_before_discount) && isset($duration_discount_amount) && $duration_discount_amount > 0)
+                            
+                            <div class="summary-item pt-4">
+                                <dt class="summary-label">Precio Base ({{ $nights }} noches)</dt>
+                                {{-- Precio ANTES del descuento por duración --}}
+                                <dd class="summary-value font-medium line-through text-gray-500">{{ number_format($base_price_before_discount, 2) }}€</dd>
+                            </div>
+                            <div class="summary-item !py-1 bg-emerald-50 rounded-md">
+                                <dt class="text-sm font-bold text-emerald-600">Descuento Larga Estancia</dt>
+                                <dd class="text-emerald-600 font-semibold">-{{ number_format($duration_discount_amount, 2) }}€</dd>
+                            </div>
+                            <div class="summary-item">
+                                <dt class="summary-label font-bold">Subtotal</dt>
+                                {{-- $base_price es el precio DESPUÉS del descuento por duración --}}
+                                <dd class="summary-value font-bold">{{ number_format($base_price, 2) }}€</dd>
+                            </div>
+
+                        @else
+                            {{-- Si no hay descuento por duración, mostramos el precio normal --}}
+                            <div class="summary-item pt-4">
+                                <dt class="summary-label">Precio Base ({{ $nights }} noches)</dt>
+                                <dd class="summary-value font-medium">{{ number_format($base_price, 2) }}€</dd>
+                            </div>
+                        @endif
                         <div class="summary-item">
                             <dt class="summary-label">Coste Extras</dt>
                             <dd class="summary-value font-medium">+ <span x-text="calculateExtrasCost().toFixed(2)"></span>€</dd>
                         </div>
+                        
+                        {{-- Esta variable $base_price que usa Alpine es correcta,
+                             ya que es el subtotal (con descuento de duración)
+                             antes de extras y antes de cupón --}}
+                        <input type="hidden" name="total_price" :value="totalConExtras.toFixed(2)">
+
+                        
                         <template x-if="couponDiscount > 0">
                             <div class="summary-item !py-1 bg-red-50 rounded-md">
                                 <dt class="text-sm font-bold text-red-600">Descuento Cupón (<span x-text="couponCodeApplied"></span>)</dt>
@@ -151,7 +183,7 @@
                         <input type="hidden" name="campervan_id" value="{{ $campervan->id }}">
                         <input type="hidden" name="start_date" value="{{ $start_date }}">
                         <input type="hidden" name="end_date" value="{{ $end_date }}">
-                        <input type="hidden" name="total_price" :value="totalConExtras.toFixed(2)">
+                        {{-- <input type="hidden" name="total_price" :value="totalConExtras.toFixed(2)"> --}} {{-- ESTE CAMPO YA NO ES NECESARIO --}}
                         <input type="hidden" name="deposit_amount" :value="finalDepositAmount.toFixed(2)">
                         <input type="hidden" name="remaining_amount" :value="finalRemainingAmount.toFixed(2)">
                         <input type="hidden" name="coupon_code" x-bind:value="couponCodeApplied">

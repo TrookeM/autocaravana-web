@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Campervan;
 use App\Models\Booking;
 use App\Models\Blocking;
+use App\Models\DurationDiscount; // <-- AÑADIDO (RF12.2)
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
@@ -42,17 +43,20 @@ class CampervanCalendar extends Component
         $this->loadUnavailableDates();
     }
 
+    // ... (loadUnavailableDates, nextMonth, previousMonth, getCanGoBackProperty, getDatesForMonth no cambian) ...
+    
     public function loadUnavailableDates(): void
     {
+        // ... (sin cambios)
+        // ... (código de bookings, blockings, etc)
         $bookings = $this->campervan->bookings()
             ->where('end_date', '>', now()->subMonth()->startOfMonth())
             ->where('status', '!=', 'cancelled')
             ->get();
-
+ 
         $unavailable = [];
-        $maintenance = []; // Array temporal para fechas de mantenimiento
-
-        // 1. Bloquear rangos de Bookings
+        $maintenance = []; 
+ 
         foreach ($bookings as $booking) {
             $start = Carbon::parse($booking->start_date);
             $end = Carbon::parse($booking->end_date);
@@ -62,127 +66,123 @@ class CampervanCalendar extends Component
                 $current->addDay();
             }
         }
-
-        // 2. Bloquear check-outs si aplica
+ 
         if ($this->campervan->no_checkout_booking) {
             foreach ($bookings as $booking) {
                 $endDateString = Carbon::parse($booking->end_date)->toDateString();
                 $unavailable[$endDateString] = true;
             }
         }
-
-        // 3. Obtener y bloquear rangos de MANTENIMIENTO
+ 
         $blockings = $this->campervan->blockings()
             ->where('end_date', '>=', now()->startOfDay())
             ->get();
-
+ 
         foreach ($blockings as $blocking) {
             $start = Carbon::parse($blocking->start_date);
             $end = Carbon::parse($blocking->end_date);
             $current = $start->copy();
             while ($current->lte($end)) {
                 $dateString = $current->toDateString();
-                $unavailable[$dateString] = true; // Marca como no disponible general
-                $maintenance[$dateString] = true; // Marca específicamente como mantenimiento
+                $unavailable[$dateString] = true; 
+                $maintenance[$dateString] = true; 
                 $current->addDay();
             }
         }
-
-        // 4. Guardar los arrays finales
-        $this->unavailableDates = $unavailable; // Para lookup interno de is_disabled/is_unavailable
-        $this->maintenanceDatesLookup = $maintenance; // <-- GUARDAMOS EL LOOKUP DE MANTENIMIENTO
-
-        // 5. Preparar JSON para Alpine
+ 
+        $this->unavailableDates = $unavailable; 
+        $this->maintenanceDatesLookup = $maintenance;
+ 
         $this->unavailableDatesJson = json_encode(array_keys($unavailable));
-        $this->maintenanceDatesJson = json_encode(array_keys($maintenance)); // JSON para Alpine sigue igual
+        $this->maintenanceDatesJson = json_encode(array_keys($maintenance));
     }
-
+ 
     public function nextMonth(): void
     {
+        // ... (sin cambios)
         $currentDate = Carbon::create($this->currentYear, $this->currentMonth, 1);
         $nextDate = $currentDate->copy()->addMonth();
-
+ 
         $this->currentMonth = $nextDate->month;
         $this->currentYear = $nextDate->year;
         $this->timestamp = now()->timestamp;
-
+ 
         $this->loadUnavailableDates();
-
-        // ===== ¡CORRECCIÓN AÑADIDA! =====
-        // Avisamos a Alpine de que las fechas han cambiado
+ 
         $this->dispatch('dates-updated', 
             unavailable: $this->unavailableDatesJson, 
             maintenance: $this->maintenanceDatesJson
         );
     }
-
+ 
     public function previousMonth(): void
     {
+        // ... (sin cambios)
         $currentDate = Carbon::create($this->currentYear, $this->currentMonth, 1);
         $today = now()->startOfMonth();
-
+ 
         if ($currentDate->gt($today)) {
             $prevDate = $currentDate->copy()->subMonth();
             $this->currentMonth = $prevDate->month;
             $this->currentYear = $prevDate->year;
             $this->timestamp = now()->timestamp;
-
+ 
             $this->loadUnavailableDates();
             
-            // ===== ¡CORRECCIÓN AÑADIDA! =====
-            // Avisamos a Alpine de que las fechas han cambiado
             $this->dispatch('dates-updated', 
                 unavailable: $this->unavailableDatesJson, 
                 maintenance: $this->maintenanceDatesJson
             );
         }
     }
-
+ 
     public function getCanGoBackProperty()
     {
+        // ... (sin cambios)
         $currentDate = Carbon::create($this->currentYear, $this->currentMonth, 1);
         return $currentDate->gt(now()->startOfMonth());
     }
-
-
+ 
+ 
     protected function getDatesForMonth(int $month, int $year): Collection
     {
+        // ... (sin cambios)
         $startOfMonth = Carbon::create($year, $month, 1);
         $daysInMonth = $startOfMonth->daysInMonth;
         $startOfWeek = $startOfMonth->dayOfWeekIso;
-
+ 
         $days = collect();
-
+ 
         for ($i = 1; $i < $startOfWeek; $i++) {
             $days->push(['date' => null, 'day_of_month' => null]);
         }
-
+ 
         $today = now()->startOfDay();
-
+ 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $date = Carbon::create($year, $month, $day)->startOfDay();
             $dateString = $date->toDateString();
-
+ 
             $isPast = $date->lt($today);
             $isUnavailable = isset($this->unavailableDates[$dateString]);
-            // <-- ¡LÍNEA CORREGIDA! Usar el lookup array
             $isMaintenance = isset($this->maintenanceDatesLookup[$dateString]);
-
+ 
             $price = $this->priceCalculator->getPriceForDate($this->campervan, $date);
-
+ 
             $days->push([
                 'date' => $dateString,
                 'day_of_month' => $day,
                 'is_today' => $date->isToday(),
                 'is_disabled' => $isPast || $isUnavailable,
                 'is_unavailable' => $isUnavailable,
-                'is_maintenance' => $isMaintenance, // <-- Ahora esta clave siempre existirá (true o false)
+                'is_maintenance' => $isMaintenance,
                 'price' => $price,
             ]);
         }
-
+ 
         return $days;
     }
+
 
     public function render()
     {
@@ -197,7 +197,13 @@ class CampervanCalendar extends Component
             return $date->locale('es')->translatedFormat('D');
         });
 
-        // Asegúrate de pasar las variables correctas a la vista
+        // ==========================================================
+        // AÑADIDO (RF12.2 - Marketing)
+        // ==========================================================
+        // Obtenemos todos los tramos de descuento y los pasamos a JSON
+        $allDiscountTiers = DurationDiscount::orderBy('min_nights', 'asc')->get();
+        // ==========================================================
+
         return view('livewire.campervan-calendar', [
             'currentMonthName' => $currentMonthDate->locale('es')->translatedFormat('F'),
             'currentYear' => $this->currentYear,
@@ -212,9 +218,11 @@ class CampervanCalendar extends Component
             'timestamp' => $this->timestamp,
             'dayNames' => $dayNames,
 
-            // Pasamos los JSON a Alpine
             'unavailableDatesJson' => $this->unavailableDatesJson,
             'maintenanceDatesJson' => $this->maintenanceDatesJson,
+            
+            // Pasamos la lista de descuentos a la vista
+            'allDiscountTiersJson' => $allDiscountTiers->toJson(), // <-- AÑADIDO
         ]);
     }
 }

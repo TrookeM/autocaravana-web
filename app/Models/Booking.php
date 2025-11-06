@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str; // <-- AÑADIDO: Para generar el token
 
 // (Asegúrate de que este Enum existe si lo estás usando)
 // use App\Enums\BookingStatus; 
@@ -71,6 +72,27 @@ class Booking extends Model
         // 'status' => BookingStatus::class, // (Si usaste el Enum)
     ];
 
+    /**
+     * ==========================================================
+     * AÑADIDO: Generar Token Público (RF10.1)
+     * ==========================================================
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Hook para el evento 'creating' (antes de guardar en DB)
+        static::creating(function ($booking) {
+            // Generar un token único y seguro
+            do {
+                $booking->public_token = Str::random(40);
+            } while (static::where('public_token', $booking->public_token)->exists());
+        });
+    }
+
     public function campervan(): BelongsTo
     {
         return $this->belongsTo(Campervan::class);
@@ -100,7 +122,7 @@ class Booking extends Model
     public function inventoryItems(): BelongsToMany
     {
         return $this->belongsToMany(InventoryItem::class, 'booking_inventory_item')
-                        ->withPivot('precio_cobrado', 'quantity_booked')
-                        ->withTimestamps();
+                                ->withPivot('precio_cobrado', 'quantity_booked')
+                                ->withTimestamps();
     }
 }

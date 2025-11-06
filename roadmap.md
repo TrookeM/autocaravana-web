@@ -49,6 +49,8 @@
 |----|---------|-------------|
 | **RF13.1** | Facturación automática | Generación de factura PDF complementaria al contrato, con numeración fiscal. |
 | **RF13.2** | Multiidioma y multimoneda | Traducciones dinámicas y conversión automática de precios según idioma o país. |
+| **RF13.3** | Paginas legales | Implementar un sistema completo de páginas legales estáticas que cumpla con los requisitos legales españoles y europeos para sitios web de alquiler de autocaravanas. Incluye aviso legal, política de privacidad, política de cookies y términos y condiciones. |
+
 
 ---
 

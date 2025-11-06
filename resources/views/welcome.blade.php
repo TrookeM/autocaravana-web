@@ -7,82 +7,179 @@
     <title>Campers - Tu Aventura Comienza Aquí</title>
     {{-- Asegúrate de que los assets de Tailwind y JS estén compilados con Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Importa Inter font si no lo tienes ya en tu app.css --}}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 
-<body class="font-sans antialiased bg-white text-gray-800 pt-20"> {{-- pt-20 para compensar el navbar fijo --}}
+<body class="font-sans antialiased bg-white text-gray-800 pt-[4.5rem] md:pt-[5rem]">
+    {{-- pt-20 para compensar el navbar fijo, ajustado un poco más --}}
 
-    <nav x-data="{ isOpen: false }" class="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-lg z-50 transition duration-300">
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+    {{-- ========================================================== --}}
+    {{-- 1. NAVEGACIÓN IMPRESIONANTE (CORREGIDA) --}}
+    {{-- ========================================================== --}}
+    <nav x-data="{ 
+            isOpen: false, 
+            scrolled: false,
             
-            <a href="#inicio" class="flex items-center gap-2 cursor-pointer">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-8 h-8"> <span class="text-xl font-extrabold text-emerald-700">Campers</span>
+            mobileMenuClick(anchor, isExternal = false) {
+                // 1. Cierra el menú inmediatamente para iniciar la animación de salida
+                this.isOpen = false;
+
+                // 2. Espera a que la animación de salida (300ms) termine
+                setTimeout(() => {
+                    if (isExternal) {
+                        // 3a. Si es un enlace externo (como la página de contacto)
+                        window.location.href = anchor;
+                    } else {
+                        // 3b. Si es un ancla (como #flota)
+                        const el = document.querySelector(anchor);
+                        if (el) {
+                            // Usa scroll suave
+                            el.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                }, 300); // IMPORTANTE: Debe coincidir con la duración de 'x-transition:leave'
+            }
+         }"
+        @scroll.window="scrolled = (window.scrollY > 30)"
+        class="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        :class="{ 'bg-white/95 backdrop-blur-lg shadow-xl': scrolled, 'bg-white/80': !scrolled }">
+
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 transition-all duration-300"
+            :class="{ 'py-2': scrolled, 'py-3 md:py-4': !scrolled }">
+
+            {{-- Logo --}}
+            <a href="#inicio" @click.prevent="mobileMenuClick('#inicio')" class="flex items-center gap-2 cursor-pointer transition transform hover:scale-105 duration-200">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-9 h-9">
+                <span class="text-2xl font-extrabold text-emerald-700">Campers</span>
             </a>
 
-            <ul class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
-                <li><a href="#inicio" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Inicio</a></li>
-                <li><a href="#flota" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Flota</a></li>
-                <li><a href="#ventajas" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Ventajas</a></li>
-                <li><a href="{{ route('contact') }}" class="hover:text-emerald-700 transition duration-200 cursor-pointer">Contacto</a></li>
+            {{-- Menú Principal (Desktop) --}}
+            <ul class="hidden md:flex items-center gap-8 text-gray-700 font-medium text-lg">
+                <li>
+                    <a href="#inicio" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
+                        Inicio
+                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#flota" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
+                        Flota
+                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#ventajas" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
+                        Ventajas
+                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('contact') }}" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
+                        Contacto
+                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+                    </a>
+                </li>
             </ul>
 
-            <a href="{{ route('contact') }}" class="hidden md:inline-block px-5 py-2 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-200 shadow-md cursor-pointer">
-                Reservar
+            {{-- Botón Reservar (Desktop) --}}
+            <a href="{{ route('contact') }}"
+                class="hidden md:inline-block px-7 py-3 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer">
+                Reservar Ahora
             </a>
 
-            <button @click="isOpen = !isOpen" class="md:hidden text-gray-700 hover:text-emerald-700 transition cursor-pointer" aria-label="Abrir menú">
-                
-                <svg x-show="!isOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+            {{-- Botón de Menú Móvil (Hamburguesa/Cerrar) --}}
+            <button @click="isOpen = !isOpen" class="md:hidden relative w-8 h-8 flex items-center justify-center text-gray-700 hover:text-emerald-700 transition duration-300 z-50" aria-label="Abrir menú">
+
+                {{-- Icono Hamburguesa --}}
+                <svg x-show="!isOpen"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 rotate-45"
+                    x-transition:enter-end="opacity-100 rotate-0"
+                    x-transition:leave="transition ease-in duration-200 absolute"
+                    x-transition:leave-start="opacity-100 rotate-0"
+                    x-transition:leave-end="opacity-0 -rotate-45"
+                    class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
                 </svg>
 
-                <svg x-show="isOpen" style="display: none;" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                {{-- Icono X --}}
+                <svg x-show="isOpen" style="display: none;"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 -rotate-45"
+                    x-transition:enter-end="opacity-100 rotate-0"
+                    x-transition:leave="transition ease-in duration-200 absolute"
+                    x-transition:leave-start="opacity-100 rotate-0"
+                    x-transition:leave-end="opacity-0 rotate-45"
+                    class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
 
+        {{-- Panel de Menú Móvil (Animación de deslizamiento y fundido) --}}
         <div x-show="isOpen"
-             @click.away="isOpen = false"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 -translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-2"
-             class="md:hidden border-t border-gray-100"
-             style="display: none;"> <ul class="flex flex-col py-4 px-6 text-gray-700 font-medium">
-                <li class="border-b border-gray-100"><a href="#inicio" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Inicio</a></li>
-                <li class="border-b border-gray-100"><a href="#flota" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Flota</a></li>
-                <li class="border-b border-gray-100"><a href="#ventajas" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Ventajas</a></li>
-                <li class="border-b border-gray-100"><a href="{{ route('contact') }}" @click="isOpen = false" class="block py-3 hover:text-emerald-700 transition duration-200">Contacto</a></li>
-                <li class="mt-4">
-                    <a href="{{ route('contact') }}" class="block text-center w-full px-5 py-2 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-200 shadow-md">
+            @click.away="isOpen = false"
+            x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 -translate-y-full"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in-out duration-300 transform"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-full"
+            class="md:hidden bg-white/95 backdrop-blur-sm shadow-inner pb-4"
+            style="display: none;">
+
+            <ul class="flex flex-col py-4 px-6 text-gray-700 font-medium text-lg">
+                <li class="border-b border-gray-100">
+                    <a href="#inicio" @click.prevent="mobileMenuClick('#inicio')" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Inicio</a>
+                </li>
+                <li class="border-b border-gray-100">
+                    <a href="#flota" @click.prevent="mobileMenuClick('#flota')" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Flota</a>
+                </li>
+                <li class="border-b border-gray-100">
+                    <a href="#ventajas" @click.prevent="mobileMenuClick('#ventajas')" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Ventajas</a>
+                </li>
+                <li class="border-b border-gray-100">
+                    <a href="{{ route('contact') }}" @click.prevent="mobileMenuClick('{{ route('contact') }}', true)" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Contacto</a>
+                </li>
+                <li class="mt-6">
+                    <a href="{{ route('contact') }}" @click.prevent="mobileMenuClick('{{ route('contact') }}', true)" class="block text-center w-full px-5 py-3 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-300 shadow-md">
                         Reservar
                     </a>
                 </li>
             </ul>
         </div>
     </nav>
-    <header id="inicio" class="hero relative flex items-center justify-center h-[90vh] text-center text-white overflow-hidden -mt-20">
-        <img src="https://images.unsplash.com/photo-1527786356703-4b100091cd2c?auto=format&fit=crop&w=1920&q=80"
-            alt="Autocaravana en paisaje natural"
-            class="absolute inset-0 w-full h-full object-cover opacity-70">
+    {{-- ========================================================== --}}
+    {{-- FIN DE NAVEGACIÓN --}}
+    {{-- ========================================================== --}}
+
+
+    <header id="inicio" class="hero relative flex items-center justify-center h-[90vh] text-center text-white overflow-hidden -mt-[4.5rem] md:-mt-[5rem]">
+        {{-- Imagen de fondo con efecto parallax --}}
+        <div class="absolute inset-0 w-full h-full bg-cover bg-center"
+            style="background-image: url('https://images.unsplash.com/photo-1527786356703-4b100091cd2c?auto=format&fit=crop&w=1920&q=80'); background-attachment: fixed;">
+        </div>
 
         <div class="absolute inset-0 bg-gradient-to-t from-emerald-900/80 via-emerald-800/40 to-transparent"></div>
 
-        <div class="relative z-10 max-w-3xl px-6 animate-fadeInUp">
-            <h1 class="text-5xl md:text-6xl font-extrabold drop-shadow-2xl">
+        <div class="relative z-10 max-w-4xl px-6 animate-fadeInUp">
+            <h1 class="text-5xl md:text-7xl font-extrabold leading-tight drop-shadow-2xl">
                 Tu Aventura Comienza Aquí
             </h1>
 
             <p class="text-lg md:text-xl mt-4 text-emerald-50 drop-shadow-md">
-                Explora, desconecta y vive la libertad sobre ruedas.
+                Explora, desconecta y vive la libertad sobre ruedas. Cada viaje, una historia.
             </p>
 
-            <div class="mt-8">
+            <div class="mt-10">
                 <a href="#flota"
-                    class="inline-block px-8 py-3 bg-emerald-600 text-white font-semibold rounded-full shadow-xl hover:bg-emerald-700 transition transform hover:scale-105 duration-300">
+                    class="inline-flex items-center gap-3 px-10 py-4 bg-emerald-600 text-white font-semibold text-lg rounded-full shadow-xl hover:bg-emerald-700 transition transform hover:scale-105 duration-300 group">
                     Descubre la Flota
+                    <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
                 </a>
             </div>
         </div>
@@ -157,7 +254,7 @@
                 </a>
                 @empty
                 <p class="text-gray-500 col-span-full">No hay autocaravanas disponibles en este momento.</p>
-                @endforelse
+                @endforelse {{-- <-- CORREGIDO --}}
             </div>
         </div>
     </section>
@@ -167,7 +264,6 @@
         <h2 class="text-4xl font-extrabold mb-4">¿Listo para tu próxima aventura?</h2>
         <p class="text-xl mb-10 text-emerald-100">Reserva hoy mismo tu camper ideal y empieza tu viaje por carretera con la mejor garantía.</p>
 
-        {{-- ENLACE CORREGIDO: Ahora apunta a la ruta con nombre 'contact' --}}
         <a href="{{ route('contact') }}" class="inline-block px-10 py-4 bg-white text-emerald-700 text-lg font-bold rounded-full shadow-2xl hover:bg-gray-100 transition transform hover:scale-105 duration-300">
             ¡Contactar Ahora y Reservar!
         </a>
@@ -235,21 +331,6 @@
         </div>
     </footer>
 
-
-    {{-- Script para animaciones o funcionalidad extra --}}
-    <script>
-        // Script simple para cambiar el color del navbar al hacer scroll (opcional)
-        window.addEventListener('scroll', function() {
-            const nav = document.querySelector('nav');
-            if (window.scrollY > 50) {
-                nav.classList.add('bg-white', 'shadow-xl', 'bg-opacity-95');
-                nav.classList.remove('bg-white/80', 'shadow-sm');
-            } else {
-                nav.classList.remove('bg-white', 'shadow-xl', 'bg-opacity-95');
-                nav.classList.add('bg-white/80', 'shadow-sm');
-            }
-        });
-    </script>
 </body>
 
 </html>

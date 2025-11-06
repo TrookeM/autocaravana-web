@@ -13,10 +13,11 @@ class PriceCalculationController extends Controller
     /**
      * Calcula el precio total, el monto de la señal y la cantidad restante de una reserva.
      * Implementa lógica para RF6.1
+     * MODIFICADO para RF12.2 (Descuentos por Duración)
      */
     public function calculate(Request $request, PriceCalculatorService $priceCalculator)
     {
-        // 1. Validar la entrada del cliente
+        // 1. Validar la entrada del cliente (Sin cambios)
         $validated = $request->validate([
             'campervan_id' => 'required|exists:campervans,id',
             'start_date' => 'required|date',
@@ -27,20 +28,38 @@ class PriceCalculationController extends Controller
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
 
-        // 2. Usar el servicio para obtener el precio final con reglas
-        $totalPrice = $priceCalculator->calculateTotalPrice($campervan, $startDate, $endDate);
+        // ==========================================================
+        // LÓGICA ACTUALIZADA (RF12.2)
+        // ==========================================================
         
-        // 3. Calcular la SEÑAL (Depósito) usando el nuevo método
-        $depositAmount = $priceCalculator->calculateDepositAmount($totalPrice);
+        // 2. Usar el servicio para obtener el DESGLOSE completo
+        $priceBreakdown = $priceCalculator->getPriceBreakdown($campervan, $startDate, $endDate);
+        
+        // 3. Calcular la SEÑAL (Depósito) usando el PRECIO FINAL
+        $depositAmount = $priceCalculator->calculateDepositAmount($priceBreakdown['final_price']);
         
         // 4. Calcular el RESTANTE a pagar
-        $remainingAmount = $totalPrice - $depositAmount;
+        $remainingAmount = $priceBreakdown['final_price'] - $depositAmount;
         
-        // 5. Devolver la respuesta JSON con la división de pagos
+        // 5. Devolver la respuesta JSON con el desglose completo
+        // (Esto cumple el Paso 6: Frontend, al darle los datos que necesita)
         return response()->json([
-            'total_price' => $totalPrice,
-            'deposit_amount' => $depositAmount,       // <- Monto de la señal (30%)
-            'remaining_amount' => $remainingAmount,   // <- Monto restante
+            
+            // Mantenemos 'total_price' apuntando al precio final
+            // por compatibilidad con tu BookingController
+            'total_price' => $priceBreakdown['final_price'], 
+            
+            'deposit_amount' => $depositAmount,
+            'remaining_amount' => $remainingAmount,
+            
+            // Añadimos el nuevo desglose para que el frontend 
+            // pueda mostrar: "Precio: 100€, Descuento: -10€, Total: 90€"
+            'price_breakdown' => [
+                'base_price' => $priceBreakdown['base_price'],
+                'duration_discount_percentage' => $priceBreakdown['discount_percentage'],
+                'duration_discount_amount' => $priceBreakdown['discount_amount'],
+                'final_price' => $priceBreakdown['final_price'],
+            ]
         ]);
     }
 }

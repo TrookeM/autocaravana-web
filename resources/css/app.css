@@ -1,305 +1,305 @@
 @import 'tailwindcss';
 @tailwind base;
+
+/* =================================== */
+/* --- MEJORA DE SCROLL (RF-Animación 2) --- */
+/* =================================== */
+html {
+    scroll-behavior: smooth; /* <-- ¡AÑADIDO! */
+}
+/* =================================== */
+
 @tailwind components;
 @tailwind utilities;
-@import "./welcome.css";
+@import "./welcome.css"; /* Tu import original */
 
 
 /* ===== VARIABLES Y BASE ===== */
 :root {
-  --primary-color: #10b981;
-  /* emerald-500 */
-  --primary-dark: #059669;
-  /* emerald-600 */
-  --primary-light: #d1fae5;
-  /* emerald-100 */
-  --accent-color: #34d399;
-  /* green-400 */
+    --primary-color: #10b981;
+    /* emerald-500 */
+    --primary-dark: #059669;
+    /* emerald-600 */
+    --primary-light: #d1fae5;
+    /* emerald-100 */
+    --accent-color: #34d399;
+    /* green-400 */
 }
 
 /* ===== COMPONENTES COMUNES ===== */
 @layer components {
 
-  /* BOTONES */
-  .btn-primary {
-    @apply bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
-  }
-
-  .btn-secondary {
-    @apply bg-green-400 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
-  }
-
-  .btn-full {
-    @apply w-full text-white font-bold py-3 rounded-xl transition duration-300 shadow-lg;
-  }
-
-  /* TARJETAS */
-  .card {
-    @apply bg-white rounded-xl shadow-lg border-t-4 border-emerald-500 p-6;
-  }
-
-  .card-feature {
-    @apply flex flex-col items-center text-center p-6;
-  }
-
-  .card-booking {
-    @apply bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500 text-left mb-8;
-  }
-
-  /* ICONOS */
-  .icon-circle {
-    @apply bg-emerald-100 text-emerald-600 p-6 rounded-full mb-4;
-  }
-
-  .icon-success {
-    @apply w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6;
-  }
-
-  /* SECCIONES */
-  .info-section {
-    @apply p-4 bg-blue-50 rounded-lg text-sm text-blue-700;
-  }
-
-  .warning-section {
-    @apply bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded;
-    /* El '*' suelto ha sido eliminado de aquí */
-  }
-
-  /* ENLACES */
-  .link-primary {
-    @apply inline-flex items-center text-emerald-500 hover:text-emerald-600 font-medium transition duration-300;
-  }
-
-  /* FORMULARIOS */
-  .form-input {
-    @apply mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500;
-  }
-
-  .form-label {
-    @apply block text-sm font-medium text-gray-700;
-  }
-
-  .form-group {
-    @apply space-y-6;
-  }
-
-  /* CALENDARIO */
-  .calendar-container {
-    @apply bg-white p-6 rounded-xl shadow-2xl relative;
-  }
-
-  .calendar-grid {
-    @apply grid grid-cols-7 gap-1;
-  }
-
-  .day-header {
-    @apply text-center text-sm font-medium text-gray-700 py-2;
-  }
-
-  .day-cell {
-    @apply relative p-2 text-center text-sm cursor-pointer transition-all duration-200 rounded-lg;
-
-    &.is-disabled {
-      @apply text-gray-400 cursor-not-allowed bg-gray-50;
+    /* BOTONES */
+    .btn-primary {
+        @apply bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
     }
 
-    &.is-unavailable {
-      @apply text-red-400 cursor-not-allowed bg-red-50 line-through;
+    /* ¡AÑADIDO! - Definición de btn-secondary que faltaba */
+    .btn-secondary {
+        @apply bg-white hover:bg-gray-100 text-emerald-700 border border-gray-300 font-bold py-3 px-6 rounded-xl shadow-lg transition duration-300;
     }
 
-    &:not(.is-disabled):not(.is-unavailable) {
-      @apply text-gray-900 hover:bg-gray-100;
+    .btn-full {
+        @apply w-full text-white font-bold py-3 rounded-xl transition duration-300 shadow-lg;
     }
 
-    &.date-range-start,
-    &.date-range-end {
-      @apply bg-emerald-600 text-white hover:bg-emerald-700;
+    /* TARJETAS */
+    .card {
+        @apply bg-white rounded-xl shadow-lg border-t-4 border-emerald-500 p-6;
     }
 
-    &.date-range-start {
-      @apply rounded-l-lg rounded-r-none;
+    .card-feature {
+        @apply flex flex-col items-center text-center p-6;
     }
 
-    &.date-range-end {
-      @apply rounded-r-lg rounded-l-none;
+    .card-booking {
+        @apply bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500 text-left mb-8;
     }
 
-    &.date-range-start.date-range-end {
-      @apply rounded-lg;
+    /* ICONOS */
+    .icon-circle {
+        @apply bg-emerald-100 text-emerald-600 p-6 rounded-full mb-4;
     }
 
-    &.date-in-range {
-      @apply bg-emerald-100 text-emerald-900 rounded-none;
+    .icon-success {
+        @apply w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6;
     }
 
-    &.hover-in-range {
-      @apply bg-emerald-50 text-emerald-700;
+    /* SECCIONES */
+    .info-section {
+        @apply p-4 bg-blue-50 rounded-lg text-sm text-blue-700;
     }
 
-    &.today-indicator {
-      @apply font-extrabold border border-emerald-500;
+    .warning-section {
+        @apply bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded;
     }
-  }
 
-  /* GALERÍA */
-  .gallery-main {
-    @apply relative w-full h-96 rounded-2xl shadow-xl overflow-hidden mb-4;
-  }
+    /* ENLACES */
+    .link-primary {
+        @apply inline-flex items-center text-emerald-500 hover:text-emerald-600 font-medium transition duration-300;
+    }
 
-  .gallery-thumbnail {
-    @apply w-20 h-14 object-cover rounded-lg cursor-pointer transition duration-150;
-  }
+    /* FORMULARIOS */
+    .form-input {
+        @apply mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500;
+    }
 
-  /* El texto 'Vertical-Align: middle' ha sido eliminado de aquí */
-  .gallery-nav-btn {
-    @apply absolute top-[40%] transform -translate-y-1/2 p-3 bg-white/70 hover:bg-white rounded-full shadow-lg transition duration-200 z-10;
-  }
+    .form-label {
+        @apply block text-sm font-medium text-gray-700;
+    }
 
-  /* TARJETAS DE PRODUCTOS */
-  .product-card {
-    @apply bg-white rounded-lg shadow-lg overflow-hidden block hover:shadow-2xl transition duration-300 cursor-pointer;
-  }
+    .form-group {
+        @apply space-y-6;
+    }
 
-  .card-main-image {
-    @apply w-full h-48 object-contain bg-gray-200 p-2;
-  }
+    /* CALENDARIO */
+    .calendar-container {
+        @apply bg-white p-6 rounded-xl shadow-2xl relative;
+    }
 
-  /* NAVEGACIÓN */
-  .nav-primary {
-    @apply bg-white shadow-md sticky top-0 z-50;
-  }
+    .calendar-grid {
+        @apply grid grid-cols-7 gap-1;
+    }
 
-  /* HÉROE */
-  .hero-section {
-    @apply relative bg-gray-800 text-white overflow-hidden;
-  }
+    .day-header {
+        @apply text-center text-sm font-medium text-gray-700 py-2;
+    }
 
-  /* RESUMEN DE RESERVA */
-  .booking-summary {
-    @apply p-6 bg-white rounded-xl shadow-lg border-t-4 border-emerald-500;
-  }
+    .day-cell {
+        @apply relative p-2 text-center text-sm cursor-pointer transition-all duration-200 rounded-lg;
 
-  .summary-item {
-    @apply py-3 flex justify-between text-sm;
-  }
+        &.is-disabled {
+            @apply text-gray-400 cursor-not-allowed bg-gray-50;
+        }
 
-  .summary-label {
-    @apply text-gray-500;
-  }
+        &.is-unavailable {
+            @apply text-red-400 cursor-not-allowed bg-red-50 line-through;
+        }
 
-  .summary-value {
-    @apply font-medium text-gray-900;
-  }
+        &:not(.is-disabled):not(.is-unavailable) {
+            @apply text-gray-900 hover:bg-gray-100;
+        }
 
-  .total-price {
-    /* Ajustado a text-xl para no ser tan grande como en la definición de la clase, 
-       pero manteniendo el color de la variable */
-    @apply font-extrabold text-xl text-emerald-600;
-  }
+        &.date-range-start,
+        &.date-range-end {
+            @apply bg-emerald-600 text-white hover:bg-emerald-700;
+        }
 
-  /* --- NUEVAS CLASES PARA OPCIONES DE PAGO RF6.1 --- */
-  .payment-option-card {
-    @apply flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer transition duration-200 ease-in-out shadow-sm;
-  }
+        &.date-range-start {
+            @apply rounded-l-lg rounded-r-none;
+        }
 
-  .payment-option-card:hover {
-    @apply border-emerald-500 shadow-md;
-  }
+        &.date-range-end {
+            @apply rounded-r-lg rounded-l-none;
+        }
 
-  .payment-option-card.active {
-    @apply border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500 shadow-lg;
-  }
+        &.date-range-start.date-range-end {
+            @apply rounded-lg;
+        }
 
-  .form-radio {
-    @apply h-5 w-5 text-emerald-600 border-gray-300 focus:ring-emerald-500;
-  }
+        &.date-in-range {
+            @apply bg-emerald-100 text-emerald-900 rounded-none;
+        }
 
-  /* ---------------------------------------------------- */
+        &.hover-in-range {
+            @apply bg-emerald-50 text-emerald-700;
+        }
 
-  /* --- CSS CORREGIDO para el Formulario de Reseñas --- */
-  .review-form-stars {
-    @apply flex flex-row-reverse justify-end items-center;
-  }
-  
-  .review-form-stars input[type="radio"] {
-    /* Oculta el radio button */
-    @apply sr-only; 
-  }
-  
-  .review-form-stars .star-label {
-    @apply text-gray-300 cursor-pointer text-4xl transition-colors duration-150;
-  }
-  
-  /* LÓGICA CORREGIDA: Al pasar el ratón por una estrella (label), se colorea ELLA MISMA
-     y todas las estrellas (label) que son sus hermanas (~) en el DOM.
-     Como el DOM es 5-4-3-2-1, al pasar por 3, colorea 3, 2 y 1. */
-  .review-form-stars .star-label:hover,
-  .review-form-stars .star-label:hover ~ .star-label {
-    @apply text-yellow-400;
-  }
-  
-  /* Estado Seleccionado (checked) */
-  .review-form-stars input[type="radio"]:checked ~ .star-label {
-    @apply text-yellow-500;
-  }
-  /* --- FIN de CSS para Formulario de Reseñas --- */
+        &.today-indicator {
+            @apply font-extrabold border border-emerald-500;
+        }
+    }
 
-  /* Sobreescribimos .form-input-modern aquí */
-  .form-input-modern {
-    @apply w-full border border-gray-300 rounded-lg bg-white transition-all duration-200 ease-in-out;
-    @apply focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none;
-    @apply hover:border-gray-400 p-4 pt-6;
-    /* Añadimos padding para campos flotantes */
-  }
+    /* GALERÍA */
+    .gallery-main {
+        @apply relative w-full h-96 rounded-2xl shadow-xl overflow-hidden mb-4;
+    }
 
-  .form-label-modern {
-    @apply absolute left-4 top-2 text-xs text-gray-500 font-medium;
-    @apply transition-all duration-200 ease-in-out;
-    @apply peer-focus:text-emerald-600 peer-focus:top-2 peer-focus:text-xs;
-    @apply peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400;
-  }
+    .gallery-thumbnail {
+        @apply w-20 h-14 object-cover rounded-lg cursor-pointer transition duration-150;
+    }
+
+    .gallery-nav-btn {
+        @apply absolute top-[40%] transform -translate-y-1/2 p-3 bg-white/70 hover:bg-white rounded-full shadow-lg transition duration-200 z-10;
+    }
+
+    /* TARJETAS DE PRODUCTOS */
+    .product-card {
+        @apply bg-white rounded-lg shadow-lg overflow-hidden block hover:shadow-2xl transition duration-300 cursor-pointer;
+    }
+
+    .card-main-image {
+        @apply w-full h-48 object-contain bg-gray-200 p-2;
+    }
+
+    /* NAVEGACIÓN */
+    .nav-primary {
+        @apply bg-white shadow-md sticky top-0 z-50;
+    }
+
+    /* HÉROE */
+    .hero-section {
+        @apply relative bg-gray-800 text-white overflow-hidden;
+    }
+
+    /* RESUMEN DE RESERVA */
+    .booking-summary {
+        @apply p-6 bg-white rounded-xl shadow-lg border-t-4 border-emerald-500;
+    }
+
+    .summary-item {
+        @apply py-3 flex justify-between text-sm;
+    }
+
+    .summary-label {
+        @apply text-gray-500;
+    }
+
+    .summary-value {
+        @apply font-medium text-gray-900;
+    }
+
+    .total-price {
+        @apply font-extrabold text-xl text-emerald-600;
+    }
+
+    /* --- NUEVAS CLASES PARA OPCIONES DE PAGO RF6.1 --- */
+    .payment-option-card {
+        @apply flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer transition duration-200 ease-in-out shadow-sm;
+    }
+
+    .payment-option-card:hover {
+        @apply border-emerald-500 shadow-md;
+    }
+
+    .payment-option-card.active {
+        @apply border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500 shadow-lg;
+    }
+
+    .form-radio {
+        @apply h-5 w-5 text-emerald-600 border-gray-300 focus:ring-emerald-500;
+    }
+
+    /* ---------------------------------------------------- */
+
+    /* --- CSS CORREGIDO para el Formulario de Reseñas --- */
+    .review-form-stars {
+        @apply flex flex-row-reverse justify-end items-center;
+    }
+
+    .review-form-stars input[type="radio"] {
+        @apply sr-only;
+    }
+
+    .review-form-stars .star-label {
+        @apply text-gray-300 cursor-pointer text-4xl transition-colors duration-150;
+    }
+
+    .review-form-stars .star-label:hover,
+    .review-form-stars .star-label:hover~.star-label {
+        @apply text-yellow-400;
+    }
+
+    .review-form-stars input[type="radio"]:checked~.star-label {
+        @apply text-yellow-500;
+    }
+    /* --- FIN de CSS para Formulario de Reseñas --- */
+
+    /* Sobreescribimos .form-input-modern aquí */
+    .form-input-modern {
+        @apply w-full border border-gray-300 rounded-lg bg-white transition-all duration-200 ease-in-out;
+        @apply focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none;
+        @apply hover:border-gray-400 p-4 pt-6;
+    }
+
+    .form-label-modern {
+        @apply absolute left-4 top-2 text-xs text-gray-500 font-medium;
+        @apply transition-all duration-200 ease-in-out;
+        @apply peer-focus:text-emerald-600 peer-focus:top-2 peer-focus:text-xs;
+        @apply peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400;
+    }
 }
 
 /* Para navegadores WebKit (Chrome, Safari) */
 .form-input-modern::-webkit-input-placeholder {
-  color: transparent;
+    color: transparent;
 }
 
 .form-input-modern::-moz-placeholder {
-  color: transparent;
+    color: transparent;
 }
 
 .form-input-modern:-ms-input-placeholder {
-  color: transparent;
+    color: transparent;
 }
 
 .form-input-modern::-ms-input-placeholder {
-  color: transparent;
+    color: transparent;
 }
 
 .form-input-modern::placeholder {
-  color: transparent;
+    color: transparent;
 }
 
 /* ===== UTILIDADES PERSONALIZADAS ===== */
 @layer utilities {
-  .text-primary {
-    color: var(--primary-color);
-  }
+    .text-primary {
+        color: var(--primary-color);
+    }
 
-  .bg-primary {
-    background-color: var(--primary-color);
-  }
+    .bg-primary {
+        background-color: var(--primary-color);
+    }
 
-  .border-primary {
-    border-color: var(--primary-color);
-  }
+    .border-primary {
+        border-color: var(--primary-color);
+    }
 
-  .container-main {
-    @apply container mx-auto px-4 py-12;
-  }
+    .container-main {
+        @apply container mx-auto px-4 py-12;
+    }
 
-  .grid-main {
-    @apply grid grid-cols-1 lg:grid-cols-3 gap-12;
-  }
+    .grid-main {
+        @apply grid grid-cols-1 lg:grid-cols-3 gap-12;
+    }
 }

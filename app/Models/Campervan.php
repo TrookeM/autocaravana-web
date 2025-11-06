@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- ¡AÑADIR ESTE IMPORT!
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\Guide;
 
 class Campervan extends Model
 {
@@ -73,5 +74,16 @@ class Campervan extends Model
                     // Le decimos a Eloquent que también cargue estos campos de la pivote
                     ->withPivot('quantity', 'es_opcional', 'precio', 'es_por_dia')
                     ->withTimestamps();
+    }
+
+    /**
+     * ==========================================================
+     * NUEVA RELACIÓN: GUÍAS Y MANUALES (RF9.2.b)
+     * ==========================================================
+     * Una camper tiene muchas guías.
+     */
+    public function guides(): HasMany
+    {
+        return $this->hasMany(Guide::class);
     }
 }

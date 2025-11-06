@@ -24,9 +24,10 @@ class CouponResource extends Resource
     protected static ?string $model = Coupon::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-gift';
-    protected static ?string $navigationGroup = 'Reservas y Pagos';
+    
+    protected static ?string $navigationGroup = 'Gestión de Precios'; 
     protected static ?string $modelLabel = 'Cupón';
-    protected static ?string $pluralModelLabel = 'Cupones';
+    protected static ?string $pluralModelLabel = 'Cupones de Descuento';
 
     public static function form(Form $form): Form
     {
