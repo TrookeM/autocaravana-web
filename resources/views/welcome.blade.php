@@ -1,162 +1,10 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campers - Tu Aventura Comienza Aquí</title>
-    {{-- Asegúrate de que los assets de Tailwind y JS estén compilados con Vite --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+@section('content')
+    {{-- 'scroll-mt-[5rem]' (o la altura de tu nav) compensa el anclaje --}}
+    <header id="inicio" class="hero relative flex items-center justify-center h-[90vh] text-center text-white overflow-hidden scroll-mt-[5rem]">
+        {{-- El margin-top negativo se eliminó --}}
 
-    {{-- Importa Inter font si no lo tienes ya en tu app.css --}}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-</head>
-
-<body class="font-sans antialiased bg-white text-gray-800 pt-[4.5rem] md:pt-[5rem]">
-    {{-- pt-20 para compensar el navbar fijo, ajustado un poco más --}}
-
-    {{-- ========================================================== --}}
-    {{-- 1. NAVEGACIÓN IMPRESIONANTE (CORREGIDA) --}}
-    {{-- ========================================================== --}}
-    <nav x-data="{ 
-            isOpen: false, 
-            scrolled: false,
-            
-            mobileMenuClick(anchor, isExternal = false) {
-                // 1. Cierra el menú inmediatamente para iniciar la animación de salida
-                this.isOpen = false;
-
-                // 2. Espera a que la animación de salida (300ms) termine
-                setTimeout(() => {
-                    if (isExternal) {
-                        // 3a. Si es un enlace externo (como la página de contacto)
-                        window.location.href = anchor;
-                    } else {
-                        // 3b. Si es un ancla (como #flota)
-                        const el = document.querySelector(anchor);
-                        if (el) {
-                            // Usa scroll suave
-                            el.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    }
-                }, 300); // IMPORTANTE: Debe coincidir con la duración de 'x-transition:leave'
-            }
-         }"
-        @scroll.window="scrolled = (window.scrollY > 30)"
-        class="fixed top-0 left-0 w-full z-50 transition-all duration-300"
-        :class="{ 'bg-white/95 backdrop-blur-lg shadow-xl': scrolled, 'bg-white/80': !scrolled }">
-
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 transition-all duration-300"
-            :class="{ 'py-2': scrolled, 'py-3 md:py-4': !scrolled }">
-
-            {{-- Logo --}}
-            <a href="#inicio" @click.prevent="mobileMenuClick('#inicio')" class="flex items-center gap-2 cursor-pointer transition transform hover:scale-105 duration-200">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-9 h-9">
-                <span class="text-2xl font-extrabold text-emerald-700">Campers</span>
-            </a>
-
-            {{-- Menú Principal (Desktop) --}}
-            <ul class="hidden md:flex items-center gap-8 text-gray-700 font-medium text-lg">
-                <li>
-                    <a href="#inicio" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
-                        Inicio
-                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#flota" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
-                        Flota
-                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#ventajas" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
-                        Ventajas
-                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('contact') }}" class="relative group hover:text-emerald-700 transition duration-200 cursor-pointer">
-                        Contacto
-                        <span class="absolute inset-x-0 bottom-0 h-[3px] bg-emerald-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
-                    </a>
-                </li>
-            </ul>
-
-            {{-- Botón Reservar (Desktop) --}}
-            <a href="{{ route('contact') }}"
-                class="hidden md:inline-block px-7 py-3 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer">
-                Reservar Ahora
-            </a>
-
-            {{-- Botón de Menú Móvil (Hamburguesa/Cerrar) --}}
-            <button @click="isOpen = !isOpen" class="md:hidden relative w-8 h-8 flex items-center justify-center text-gray-700 hover:text-emerald-700 transition duration-300 z-50" aria-label="Abrir menú">
-
-                {{-- Icono Hamburguesa --}}
-                <svg x-show="!isOpen"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 rotate-45"
-                    x-transition:enter-end="opacity-100 rotate-0"
-                    x-transition:leave="transition ease-in duration-200 absolute"
-                    x-transition:leave-start="opacity-100 rotate-0"
-                    x-transition:leave-end="opacity-0 -rotate-45"
-                    class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-
-                {{-- Icono X --}}
-                <svg x-show="isOpen" style="display: none;"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 -rotate-45"
-                    x-transition:enter-end="opacity-100 rotate-0"
-                    x-transition:leave="transition ease-in duration-200 absolute"
-                    x-transition:leave-start="opacity-100 rotate-0"
-                    x-transition:leave-end="opacity-0 rotate-45"
-                    class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-
-        {{-- Panel de Menú Móvil (Animación de deslizamiento y fundido) --}}
-        <div x-show="isOpen"
-            @click.away="isOpen = false"
-            x-transition:enter="transition ease-out duration-300 transform"
-            x-transition:enter-start="opacity-0 -translate-y-full"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in-out duration-300 transform"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-full"
-            class="md:hidden bg-white/95 backdrop-blur-sm shadow-inner pb-4"
-            style="display: none;">
-
-            <ul class="flex flex-col py-4 px-6 text-gray-700 font-medium text-lg">
-                <li class="border-b border-gray-100">
-                    <a href="#inicio" @click.prevent="mobileMenuClick('#inicio')" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Inicio</a>
-                </li>
-                <li class="border-b border-gray-100">
-                    <a href="#flota" @click.prevent="mobileMenuClick('#flota')" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Flota</a>
-                </li>
-                <li class="border-b border-gray-100">
-                    <a href="#ventajas" @click.prevent="mobileMenuClick('#ventajas')" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Ventajas</a>
-                </li>
-                <li class="border-b border-gray-100">
-                    <a href="{{ route('contact') }}" @click.prevent="mobileMenuClick('{{ route('contact') }}', true)" class="block py-3 hover:text-emerald-700 hover:translate-x-2 transition-all duration-300">Contacto</a>
-                </li>
-                <li class="mt-6">
-                    <a href="{{ route('contact') }}" @click.prevent="mobileMenuClick('{{ route('contact') }}', true)" class="block text-center w-full px-5 py-3 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition duration-300 shadow-md">
-                        Reservar
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-    {{-- ========================================================== --}}
-    {{-- FIN DE NAVEGACIÓN --}}
-    {{-- ========================================================== --}}
-
-
-    <header id="inicio" class="hero relative flex items-center justify-center h-[90vh] text-center text-white overflow-hidden -mt-[4.5rem] md:-mt-[5rem]">
         {{-- Imagen de fondo con efecto parallax --}}
         <div class="absolute inset-0 w-full h-full bg-cover bg-center"
             style="background-image: url('https://images.unsplash.com/photo-1527786356703-4b100091cd2c?auto=format&fit=crop&w=1920&q=80'); background-attachment: fixed;">
@@ -185,8 +33,7 @@
         </div>
     </header>
 
-
-    <section id="ventajas" class="py-20 bg-gray-50">
+    <section id="ventajas" class="py-20 bg-gray-50 scroll-mt-[5rem]">
         <div class="max-w-6xl mx-auto px-6 text-center">
             <h2 class="text-4xl font-extrabold text-gray-900 mb-4">¿Por qué elegirnos?</h2>
             <p class="text-xl text-gray-600 mb-12">Tu compañero ideal para la carretera.</p>
@@ -223,8 +70,7 @@
         </div>
     </section>
 
-
-    <section id="flota" class="py-20 bg-white">
+    <section id="flota" class="py-20 bg-white scroll-mt-[5rem]">
         <div class="container mx-auto px-6 text-center">
             <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Nuestra Flota</h2>
             <p class="text-xl text-gray-600 mt-2 mb-12">Autocaravanas equipadas para tu próxima aventura.</p>
@@ -234,7 +80,7 @@
                 <a href="{{ route('campervan.show', $campervan) }}"
                     class="block bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-2 duration-300">
 
-                    <img src="{{ $campervan->main_image_path ? asset('storage/' . $campervan->main_image_path) : 'https://placehold.co/600x400/E9D5FF/7C3AED?text=Autocaravana' }}"
+                    <img src="{{ $campervan->main_image_path ? asset('storage/'. $campervan->main_image_path) : 'https://placehold.co/600x400/E9D5FF/7C3AED?text=Autocaravana' }}"
                         alt="{{ $campervan->name }}" class="w-full h-56 object-cover">
 
                     <div class="p-6 text-left">
@@ -254,13 +100,12 @@
                 </a>
                 @empty
                 <p class="text-gray-500 col-span-full">No hay autocaravanas disponibles en este momento.</p>
-                @endforelse {{-- <-- CORREGIDO --}}
+                @endforelse
             </div>
         </div>
     </section>
 
-
-    <section id="contacto" class="bg-emerald-800 text-white py-20 text-center">
+    <section id="contacto" class="bg-emerald-800 text-white py-20 text-center scroll-mt-[5rem]">
         <h2 class="text-4xl font-extrabold mb-4">¿Listo para tu próxima aventura?</h2>
         <p class="text-xl mb-10 text-emerald-100">Reserva hoy mismo tu camper ideal y empieza tu viaje por carretera con la mejor garantía.</p>
 
@@ -268,69 +113,5 @@
             ¡Contactar Ahora y Reservar!
         </a>
     </section>
+@endsection
 
-
-    <footer class="bg-emerald-900 text-emerald-50 py-12">
-        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10">
-
-            {{-- Columna 1: Sobre Nosotros --}}
-            <div>
-                <h3 class="text-xl font-bold mb-4 border-b border-emerald-700 pb-2">Campers</h3>
-                <p class="text-sm text-emerald-100">
-                    En Campers ofrecemos experiencias únicas sobre ruedas. Calidad, libertad y aventura garantizadas en cada viaje.
-                </p>
-            </div>
-
-            {{-- Columna 2: Enlaces Rápidos --}}
-            <div>
-                <h3 class="text-xl font-bold mb-4 border-b border-emerald-700 pb-2">Enlaces</h3>
-                <ul class="space-y-3 text-sm">
-                    <li><a href="#inicio" class="hover:text-white transition duration-200">Inicio</a></li>
-                    <li><a href="#ventajas" class="hover:text-white transition duration-200">Por qué elegirnos</a></li>
-                    <li><a href="#flota" class="hover:text-white transition duration-200">Nuestra flota</a></li>
-                    <li><a href="#contacto" class="hover:text-white transition duration-200">Contacto y Reserva</a></li>
-                </ul>
-            </div>
-
-            {{-- Columna 3: Contacto --}}
-            <div>
-                <h3 class="text-xl font-bold mb-4 border-b border-emerald-700 pb-2">Contacto</h3>
-                <ul class="text-sm text-emerald-100 space-y-3">
-                    <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.772-1.549a1 1 0 011.06-.54l4.435.74A1 1 0 0118 16.847V17a1 1 0 01-1 1h-1.153a1 1 0 01-.986-.836l-.74-4.435a1 1 0 01.54-1.06l1.548-.773a11.037 11.037 0 00-6.105-6.105l-.772 1.549a1 1 0 01-1.06.54l-4.435-.74A1 1 0 013.153 3H2z" />
-                        </svg> +34 600 123 456</li>
-                    <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                        </svg> info@campers.es</li>
-                    <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 1110.63 8.35c-.244.372-.61.737-.997 1.026C13.627 14.62 10 17 10 17s-3.627-2.38-4.686-3.57C4.66 12.137 4.295 11.772 4.05 11.4A7 7 0 015.05 4.05zm5.45 6.45a2 2 0 10-4 0 2 2 0 004 0z" clip-rule="evenodd" />
-                        </svg> Madrid, España</li>
-                </ul>
-            </div>
-
-            {{-- Columna 4: Síguenos --}}
-            <div>
-                <h3 class="text-xl font-bold mb-4 border-b border-emerald-700 pb-2">Síguenos</h3>
-                <div class="flex space-x-6 text-2xl">
-                    <a href="#" class="hover:text-white transition duration-200" aria-label="Facebook"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.789c0-2.527 1.547-3.918 3.793-3.918 1.087 0 2.037.193 2.308.28v2.66h-1.55c-1.22 0-1.458.583-1.458 1.432V12h3.046l-.497 3.033h-2.549V21.878C18.343 21.128 22 16.991 22 12z" />
-                        </svg></a>
-                    <a href="#" class="hover:text-white transition duration-200" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4 4c1.105 0 2 .895 2 2s-.895 2-2 2-2-.895-2-2 .895-2 2-2zm-4 4c2.761 0 5 2.239 5 5s-2.239 5-5 5-5-2.239-5-5 2.239-5 5-5zm0 2a3 3 0 100 6 3 3 0 000-6z" />
-                        </svg></a>
-                    <a href="#" class="hover:text-white transition duration-200" aria-label="TikTok"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12.44 2.008C12.016 2.016 11.583 2.006 11.162 2.05c-.046-.01-.093-.018-.14-.025-.008-.002-.015-.005-.023-.007C10.74 1.99 10.59 2 10.435 2H3.5C2.122 2 1 3.122 1 4.5v15C1 20.878 2.122 22 3.5 22h17c1.378 0 2.5-1.122 2.5-2.5v-13C23 4.122 21.878 3 20.5 3H16.14c-.16 0-.315-.01-.465.01c-.008.002-.015.005-.023.007-.047.007-.094.015-.14.025C15.82 2.006 15.387 2.016 14.962 2.008l-.022.001c-.13-.008-.26-.008-.39-.008H12.44zm-.006 1.5c.348-.008.694.002 1.04.025.2.014.402.04.603.078.08.016.16.033.24.053.07.018.14.038.21.06l.004.002c.07.022.14.045.21.07.07.025.14.053.21.083.07.03.14.06.21.092.07.032.14.066.21.103.07.037.14.077.21.12c.07.043.14.09.2.138.06.048.12.1.18.155.06.055.12.113.18.173.06.06.12.123.18.188.06.065.12.13.18.2.06.07.12.14.17.21.05.07.1.145.15.22.05.075.1.15.15.23.05.08.1.16.15.24.05.08.1.165.15.25.05.085.1.17.14.26.04.09.08.18.12.27.04.095.08.19.12.29.04.1.08.2.11.3.03.1.06.2.09.31.03.1.06.21.08.32.02.1.04.2.06.31.02.1.03.21.04.32.01.1.02.2.02.31V9.5h-2.5V8c0-.28-.22-.5-.5-.5H13c-.28 0-.5.22-.5.5v2.5H10c-.28 0-.5.22-.5.5v2c0 .28.22.5.5.5h2.5V17c0 .28.22.5.5.5h2.5c.28 0 .5-.22.5-.5v-2.5h2.5c.28 0 .5-.22.5-.5v-2c0-.28-.22-.5-.5-.5h-2.5V8c0-1.87-1.427-3.418-3.235-3.492z" />
-                        </svg></a>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center text-emerald-200 text-sm mt-10 border-t border-emerald-800 pt-6">
-            © {{ date('Y') }} Campers. Todos los derechos reservados.
-        </div>
-    </footer>
-
-</body>
-
-</html>

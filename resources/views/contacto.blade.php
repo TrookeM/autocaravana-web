@@ -1,4 +1,4 @@
-@extends('layouts.contact_form')
+@extends('layouts.app')
 
 @section('content')
 <section class="min-h-screen pt-32 pb-20 bg-gray-50">

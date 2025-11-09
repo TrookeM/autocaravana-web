@@ -45,6 +45,140 @@
   .icon-circle {
     @apply text-4xl text-emerald-600 mb-2;
   }
+
+  /* --- Navegación principal (botones de escritorio) --- */
+  .nav-button {
+    @apply relative inline-flex items-center px-4 py-2 text-sm font-semibold rounded-full transition-all duration-200 select-none;
+  }
+
+  /* Estado por defecto (nav transparente en la parte superior)
+     Forzamos contraste sobre fondos claros */
+  #navbar:not(.scrolled) .nav-button {
+    @apply text-white hover:text-white bg-white/0 hover:bg-white/10 ring-0;
+  }
+
+  /* Estado con scroll (nav con fondo blanco) */
+  #navbar.scrolled .nav-button {
+    @apply text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 ring-1 ring-emerald-200 hover:ring-emerald-300 shadow-sm;
+  }
+
+  /* Accesibilidad (focus visible) */
+  .nav-button:focus-visible {
+    @apply outline-none ring-2 ring-offset-2;
+  }
+  #navbar.scrolled .nav-button:focus-visible {
+    @apply ring-emerald-300 ring-offset-white;
+  }
+  #navbar:not(.scrolled) .nav-button:focus-visible {
+    @apply ring-white/40 ring-offset-transparent;
+  }
+
+  /* Subrayado sutil animado */
+  .nav-button::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 8px;
+    height: 2px;
+    background: currentColor;
+    opacity: 0;
+    transform: scaleX(0.5);
+    transition: opacity .2s ease, transform .2s ease;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
+  .nav-button:hover::after,
+  .nav-button:focus-visible::after {
+    opacity: .3;
+    transform: scaleX(1);
+  }
+
+  /* Contenedor de grupo para look "pastilla" */
+  .nav-group {
+    @apply gap-1.5;
+  }
+  #navbar:not(.scrolled) .nav-group {
+    @apply bg-black/30 backdrop-blur-md rounded-full p-1 shadow-sm ring-1 ring-white/20;
+  }
+  #navbar.scrolled .nav-group {
+    @apply bg-white rounded-full p-1 shadow-md ring-1 ring-gray-200;
+  }
+
+  /* --- Navegación móvil mejorada --- */
+  #mobile-menu-button {
+    @apply inline-flex items-center justify-center p-2 rounded-full transition-all duration-200 ease-out w-10 h-10 cursor-pointer select-none;
+    position: relative;
+  }
+  #navbar:not(.scrolled) #mobile-menu-button {
+    @apply text-white bg-black/20 ring-1 ring-white/20 backdrop-blur-md hover:bg-black/30;
+  }
+  #navbar.scrolled #mobile-menu-button {
+    @apply text-gray-800 bg-gray-100 ring-1 ring-gray-300 hover:bg-gray-200;
+  }
+
+  /* Barras del botón hamburguesa */
+  #mobile-menu-button .bar {
+    @apply block rounded-full transition-all duration-200 ease-out;
+    width: 22px;
+    height: 2px;
+    background-color: currentColor;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  #mobile-menu-button .bar:nth-child(1) { transform: translate(-50%, -6px); }
+  #mobile-menu-button .bar:nth-child(2) { transform: translate(-50%, 0); }
+  #mobile-menu-button .bar:nth-child(3) { transform: translate(-50%, 6px); }
+
+  /* Hover micro-interacción */
+  #mobile-menu-button:hover .bar:nth-child(1) { transform: translate(-50%, -7px); }
+  #mobile-menu-button:hover .bar:nth-child(3) { transform: translate(-50%, 7px); }
+
+  /* Estado abierto -> cruz */
+  #mobile-menu-button.open .bar:nth-child(1) { transform: translate(-50%, 0) rotate(45deg); }
+  #mobile-menu-button.open .bar:nth-child(2) { opacity: 0; transform: translate(-50%, 0) scaleX(0.6); }
+  #mobile-menu-button.open .bar:nth-child(3) { transform: translate(-50%, 0) rotate(-45deg); }
+
+  /* Panel móvil con animación */
+  #mobile-menu {
+    @apply origin-top bg-white/90 backdrop-blur-xl shadow-2xl ring-1 ring-gray-200 rounded-2xl mx-3 mt-2 transition-all duration-300 ease-out;
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+  }
+  #mobile-menu.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Enlaces del panel móvil */
+  #mobile-menu a {
+    @apply flex items-center justify-between text-gray-800 font-medium;
+  }
+  #mobile-menu a::after {
+    content: "›";
+    @apply text-emerald-600 transition-transform duration-200;
+    transform: translateX(-4px);
+  }
+  #mobile-menu a:hover::after {
+    transform: translateX(0);
+  }
+
+  /* CTA del panel móvil */
+  #mobile-menu .p-4 a {
+    @apply rounded-xl shadow-lg;
+  }
+
+  /* Overlay de fondo para enfoque del menú */
+  #mobile-menu-overlay {
+    @apply fixed inset-0 opacity-0 pointer-events-none transition-opacity duration-300;
+    z-index: 40; /* por debajo del navbar (z-50) */
+  }
+  #mobile-menu-overlay.open {
+    @apply opacity-100 pointer-events-auto bg-black/40 backdrop-blur-[2px];
+  }
 }
 
 /* Animaciones */
@@ -54,6 +188,23 @@
 }
 
 .animate-fadeInUp {
-  animation: fadeInUp 1.2s ease-out forwards;
+  animation: fadeInUp 1.8s ease-out forwards;
 }
 
+/* Estilos base para los enlaces de navegación en escritorio */
+.nav-link {
+    @apply text-white font-semibold tracking-wide transition-colors duration-300;
+}
+
+/* Estilo hover para los enlaces cuando la barra es transparente */
+.nav-link:hover {
+    @apply text-emerald-200;
+}
+
+/* Estilos para la barra de navegación cuando se hace scroll */
+.scrolled .nav-link {
+    @apply text-gray-700;
+}
+.scrolled .nav-link:hover {
+    @apply text-emerald-600;
+}

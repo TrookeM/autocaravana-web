@@ -57,7 +57,13 @@ class PriceCalculationController extends Controller
             'price_breakdown' => [
                 'base_price' => $priceBreakdown['base_price'],
                 'duration_discount_percentage' => $priceBreakdown['discount_percentage'],
-                'duration_discount_amount' => $priceBreakdown['discount_amount'],
+                
+                // ==========================================================
+                // ¡AQUÍ ESTÁ LA CORRECCIÓN!
+                // Leemos la clave correcta ('duration_discount_amount')
+                // ==========================================================
+                'duration_discount_amount' => $priceBreakdown['duration_discount_amount'],
+                
                 'final_price' => $priceBreakdown['final_price'],
             ]
         ]);

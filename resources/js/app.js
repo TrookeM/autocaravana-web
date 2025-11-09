@@ -397,6 +397,91 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    const navbar = document.getElementById('navbar');
+    const navLogo = document.getElementById('nav-logo');
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    // Función para sincronizar estado visual de la navbar
+    const updateNavbar = () => {
+        const forceSolid = document.body && document.body.dataset.navSolid === 'true';
+        if (forceSolid || window.scrollY > 50) {
+            navbar.classList.add('scrolled', 'bg-white', 'shadow-lg');
+            navLogo.classList.remove('text-white');
+            navLogo.classList.add('text-emerald-700');
+            mobileMenuButton.classList.remove('text-white');
+            mobileMenuButton.classList.add('text-gray-800');
+        } else {
+            navbar.classList.remove('scrolled', 'bg-white', 'shadow-lg');
+            navLogo.classList.add('text-white');
+            navLogo.classList.remove('text-emerald-700');
+            mobileMenuButton.classList.add('text-white');
+            mobileMenuButton.classList.remove('text-gray-800');
+            // Cierra el menú móvil si se vuelve a la parte superior
+            mobileMenu.classList.add('hidden');
+            mobileMenuButton?.classList.remove('open');
+            mobileMenuButton?.setAttribute('aria-expanded', 'false');
+        }
+    };
+
+    // Estado inicial + escucha de scroll
+    updateNavbar();
+    window.addEventListener('scroll', updateNavbar);
+
+    // Toggle para el menú móvil con animación + overlay
+    const mobileOverlay = document.getElementById('mobile-menu-overlay');
+    mobileMenuButton.addEventListener('click', () => {
+        const willOpen = mobileMenu.classList.contains('hidden');
+
+        if (willOpen) {
+            // Mostrar y animar apertura
+            mobileMenu.classList.remove('hidden');
+            // Forzar reflow para que la transición ocurra
+            void mobileMenu.offsetHeight;
+            mobileMenu.classList.add('open');
+            mobileOverlay?.classList.remove('hidden');
+            mobileOverlay?.classList.add('open');
+            // Botón a estado abierto
+            mobileMenuButton.classList.add('open');
+            mobileMenuButton.setAttribute('aria-expanded', 'true');
+        } else {
+            // Animar cierre
+            mobileMenu.classList.remove('open');
+            mobileOverlay?.classList.remove('open');
+            const onEnd = () => {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.removeEventListener('transitionend', onEnd);
+                mobileOverlay?.classList.add('hidden');
+            };
+            mobileMenu.addEventListener('transitionend', onEnd);
+            // Botón a estado cerrado
+            mobileMenuButton.classList.remove('open');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Cerrar menú móvil al hacer clic en overlay o en un enlace
+    const closeMobileMenu = () => {
+        if (!mobileMenu.classList.contains('hidden')) {
+            mobileMenu.classList.remove('open');
+            mobileOverlay?.classList.remove('open');
+            const onEnd = () => {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.removeEventListener('transitionend', onEnd);
+                mobileOverlay?.classList.add('hidden');
+            };
+            mobileMenu.addEventListener('transitionend', onEnd);
+            mobileMenuButton.classList.remove('open');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+        }
+    };
+    mobileOverlay?.addEventListener('click', closeMobileMenu);
+    document.querySelectorAll('#mobile-menu a').forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+    });
+});
+
 // ------------------------------
 // 5. Importar Flatpickr
 // ------------------------------
