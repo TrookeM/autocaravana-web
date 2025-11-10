@@ -1,39 +1,50 @@
 // ------------------------------
-// 1. Comprobamos si Livewire cargará Alpine o no
+// Alpine: usa una sola instancia
 // ------------------------------
-let alpineLoadedByLivewire = false;
-
-// Livewire avisa justo antes de iniciar Alpine
-document.addEventListener('livewire:init', () => {
-    alpineLoadedByLivewire = true;
-});
+// No importamos Alpine aquí para evitar duplicados.
+// Livewire (@livewireScripts) se encargará de exponer window.Alpine y arrancarlo.
 
 // ------------------------------
-// 2. Si Livewire NO está en esta página, importamos Alpine manualmente
-// ------------------------------
-let AlpineImported = null;
-
-(async () => {
-    if (!window.Livewire) {
-        AlpineImported = (await import('alpinejs')).default;
-        window.Alpine = AlpineImported;
-        AlpineImported.start();
-    }
-})();
-
-// ------------------------------
-// 3. Importar Bootstrap (si Livewire existe, aquí cargará Alpine)
+// Importar Bootstrap
 // ------------------------------
 import './bootstrap';
 
 // ------------------------------
-// 4. Si Livewire cargó Alpine, iniciamos nuestros componentes con alpine:init
+// Exponer proxies globales para x-data
 // ------------------------------
+// Garantiza que `x-data="calendar(...)"` y `x-data="couponLogic(...)"`
+// no fallen aunque el registro de Alpine ocurra unos ms más tarde.
+if (!window.calendar) {
+    window.calendar = (...args) => window.__calendarFactory ? window.__calendarFactory(...args) : {};
+}
+if (!window.couponLogic) {
+    window.couponLogic = (...args) => window.__couponLogicFactory ? window.__couponLogicFactory(...args) : {};
+}
+
+// ------------------------------
+// Fallback: cargar Alpine si no existe (páginas sin Livewire)
+// ------------------------------
+if (!window.Alpine) {
+    import('alpinejs').then(({ default: Alpine }) => {
+        if (!window.Alpine) {
+            window.Alpine = Alpine;
+        }
+        // Iniciar Alpine; esto disparará 'alpine:init' y registrará componentes
+        window.Alpine.start();
+    }).catch(() => {
+        // Silencioso: la página seguirá funcionando sin Alpine (no rompe)
+    });
+}
+
+// ------------------------------
+// Registrar componentes Alpine
+// ------------------------------
+// Registrar durante 'alpine:init' para evitar instancias duplicadas
 document.addEventListener('alpine:init', () => {
 
     // ✅ CUPÓN CHECKOUT
-    // (Esta sección 'couponLogic' no tiene cambios)
-    Alpine.data('couponLogic', () => ({
+    // Capturamos la fábrica para exponerla también en window
+    window.__couponLogicFactory = () => ({
         basePrice: 0,
         nights: 0,
         extrasData: {},
@@ -161,10 +172,11 @@ document.addEventListener('alpine:init', () => {
         clearField() {
             this.couponCodeInput = '';
         }
-    }));
+    });
+    window.Alpine.data('couponLogic', window.__couponLogicFactory);
 
     // ✅ CALENDARIO (MODIFICADO RF12.2 - Marketing v2)
-    Alpine.data('calendar', ({ unavailableDates, maintenanceDates, campervanId, pricePerNight, allDiscountTiers }) => ({
+    window.__calendarFactory = ({ unavailableDates, maintenanceDates, campervanId, pricePerNight, allDiscountTiers }) => ({
         dates: { checkIn: null, checkOut: null },
         hoverDate: null,
         unavailableDates: new Set(unavailableDates),
@@ -394,14 +406,51 @@ document.addEventListener('alpine:init', () => {
         isMaintenanceDate(dateString) {
             return this.maintenanceDates.has(dateString);
         }
-    }));
+    });
+    window.Alpine.data('calendar', window.__calendarFactory);
+
 });
 
+// ------------------------------
+// Importar Flatpickr
+// ------------------------------
+import flatpickr from "flatpickr";
+import { Spanish } from "flatpickr/dist/l10n/es";
+import "flatpickr/dist/flatpickr.min.css";
+
+flatpickr.setDefaults({
+    locale: Spanish,
+    disableMobile: true
+});
+window.flatpickr = flatpickr;
+
+
+// ------------------------------
+// ¡INICIAR ALPINE!
+// ------------------------------
+// ✅ CORRECCIÓN: Esta línea debe estar comentada o eliminada.
+// Livewire se encargará de llamar a Alpine.start() por ti.
+// Alpine.start();
+
+
+// ------------------------------
+// Lógica de la Navbar (separada)
+// ------------------------------
 document.addEventListener('DOMContentLoaded', function () {
     const navbar = document.getElementById('navbar');
+    // Verificación de existencia para evitar errores en páginas sin navbar
+    if (!navbar) {
+        return; 
+    }
+    
     const navLogo = document.getElementById('nav-logo');
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
+
+    // Salir si los elementos esenciales no están
+    if (!navLogo || !mobileMenuButton || !mobileMenu) {
+        return;
+    }
 
     // Función para sincronizar estado visual de la navbar
     const updateNavbar = () => {
@@ -481,16 +530,3 @@ document.addEventListener('DOMContentLoaded', function () {
         link.addEventListener('click', closeMobileMenu);
     });
 });
-
-// ------------------------------
-// 5. Importar Flatpickr
-// ------------------------------
-import flatpickr from "flatpickr";
-import { Spanish } from "flatpickr/dist/l10n/es";
-import "flatpickr/dist/flatpickr.min.css";
-
-flatpickr.setDefaults({
-    locale: Spanish,
-    disableMobile: true
-});
-window.flatpickr = flatpickr;

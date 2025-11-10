@@ -38,6 +38,13 @@ Route::get('/booking/{booking}/contract', [BookingController::class, 'downloadCo
     ->name('booking.contract.download');
 
 // ==========================================================
+// ¡¡NUEVA RUTA PARA DESCARGAR FACTURA!! (RF13.1)
+// ==========================================================
+Route::get('/booking/{booking}/invoice', [BookingController::class, 'downloadInvoice'])
+    ->name('booking.invoice.download');
+
+
+// ==========================================================
 // NUEVA RUTA: PORTAL PÚBLICO DE RESERVA (RF10.1)
 // ==========================================================
 Route::get('/reserva/{token}', PublicBookingController::class)

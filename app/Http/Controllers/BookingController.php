@@ -6,8 +6,9 @@ use App\Models\Booking;
 use App\Models\Campervan;
 use App\Models\Coupon;
 use App\Models\InventoryItem;
-use App\Services\PriceCalculatorService; // <-- Importante
+use App\Services\PriceCalculatorService;
 use App\Services\CouponService;
+use App\Services\InvoiceService; // <-- 1. Importar el nuevo servicio
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -60,10 +61,10 @@ class BookingController extends Controller
         $paymentDueDate = $startDate->copy()->subDays(30);
         $isDepositAllowed = $campervan->allows_deposit && $paymentDueDate->gt(now());
         $defaultOption = $isDepositAllowed ? 'deposit' : 'full';
-        
+
         $extras = $campervan->inventoryItems()
-                            ->wherePivot('es_opcional', true)
-                            ->get();
+            ->wherePivot('es_opcional', true)
+            ->get();
 
         // ==========================================================
         // VISTA ACTUALIZADA (RF12.2)
@@ -73,12 +74,12 @@ class BookingController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'nights' => $nights,
-            
+
             // Pasamos el desglose de precios a la vista
             'base_price' => $totalPrice, // Este es el subtotal (con descuento de duración aplicado)
             'base_price_before_discount' => $basePriceBeforeDiscount,
             'duration_discount_amount' => $durationDiscountAmount,
-            
+
             'deposit_amount' => $priceCalculator->calculateDepositAmount($totalPrice),
             'remaining_amount' => $totalPrice - $priceCalculator->calculateDepositAmount($totalPrice),
             'due_date' => $paymentDueDate->format('d/m/Y'),
@@ -91,9 +92,10 @@ class BookingController extends Controller
     /**
      * Procesa la solicitud final de reserva, aplica el cupón y guarda la información.
      */
-    public function store(Request $request, PriceCalculatorService $priceCalculator, CouponService $couponService)
+    // <-- 2. Inyectar InvoiceService
+    public function store(Request $request, PriceCalculatorService $priceCalculator, CouponService $couponService, InvoiceService $invoiceService)
     {
-        // 1. VALIDACIÓN (MODIFICADA)
+        // 1. VALIDACIÓN
         $validated = $request->validate([
             'campervan_id' => 'required|exists:campervans,id',
             'customer_name' => 'required|string|max:255',
@@ -103,16 +105,16 @@ class BookingController extends Controller
             'end_date' => 'required|date|after:start_date',
             'payment_option' => 'required|in:deposit,full',
             'coupon_code' => 'nullable|string|max:255',
-            'final_price_after_coupon' => 'required|numeric|min:0', 
+            'final_price_after_coupon' => 'required|numeric|min:0',
             'extras' => 'nullable|array',
             'extras.*' => 'nullable|integer|exists:inventory_items,id',
         ]);
-        
+
         $campervan = Campervan::findOrFail($validated['campervan_id']);
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
         $nights = $startDate->diffInDays($endDate);
-        
+
         // ==========================================================
         // --- 2. RE-CÁLCULO DE PRECIOS EN SERVIDOR (RF12.2) ---
         // ==========================================================
@@ -122,11 +124,11 @@ class BookingController extends Controller
 
         // --- VALIDACIÓN DE STOCK DE EXTRAS (Movido aquí) ---
         $itemsToSync = [];
-        $extrasPrice = 0; 
+        $extrasPrice = 0;
 
         if (!empty($validated['extras'])) {
             $selectedItems = InventoryItem::find($validated['extras']);
-            $campervan->load('inventoryItems'); 
+            $campervan->load('inventoryItems');
 
             foreach ($selectedItems as $item) {
                 $totalStock = (int)$item->total_stock;
@@ -151,7 +153,7 @@ class BookingController extends Controller
                     $precio = (float)$pivotData->pivot->precio;
                     $esPorDia = (bool)$pivotData->pivot->es_por_dia;
                     $costoExtra = $esPorDia ? ($precio * $nights) : $precio;
-                    
+
                     $itemsToSync[$item->id] = ['precio_cobrado' => $costoExtra, 'quantity_booked' => 1];
                     $extrasPrice += $costoExtra;
                 }
@@ -171,11 +173,12 @@ class BookingController extends Controller
 
 
         // 4. CÁLCULO DE PAGOS Y ESTADO INICIAL
-        $depositAmount = $priceCalculator->calculateDepositAmount($finalPrice); 
+        $depositAmount = $priceCalculator->calculateDepositAmount($finalPrice);
         $paymentDueDate = null;
         if ($validated['payment_option'] === 'deposit') {
             $paymentDueDate = $startDate->copy()->subDays(30);
             if ($paymentDueDate->lt(now())) {
+                // Si la fecha de pago ya pasó, forzar pago completo
                 $initialAmountPaid = $finalPrice;
                 $paymentStatus = 'full_paid';
                 $paymentDueDate = null;
@@ -201,47 +204,70 @@ class BookingController extends Controller
                 'customer_phone' => $validated['customer_phone'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
-                
+
                 // --- CAMPOS DE PRECIO CORREGIDOS (RF12.2) ---
-                'total_price' => $finalPrice, 
-                'original_price' => $originalPrice, 
-                'discount_amount' => $totalDiscountAmount, 
+                'total_price' => $finalPrice,
+                'original_price' => $originalPrice,
+                'discount_amount' => $totalDiscountAmount,
                 'coupon_code' => $couponCode,
                 // --- FIN DE CAMPOS CORREGIDOS ---
-                
+
                 'amount_paid' => $initialAmountPaid,
                 'payment_status' => $paymentStatus,
                 'payment_due_date' => $paymentDueDate,
-                'status' => 'confirmed', 
+                'status' => 'confirmed', // ¡Importante! Esto dispara el Observer de Factura
             ]);
-            
+
             if (!empty($itemsToSync)) {
                 $booking->inventoryItems()->attach($itemsToSync);
             }
-            
+
             if ($couponCode) {
                 if ($couponDiscountAmount > 0) {
                     Coupon::where('code', $couponCode)->increment('uses');
                 }
             }
-            
+
             $booking->transactions()->create([
-                'gateway_id' => 'INIT_PAY_' . $booking->id . '_' . time(), 
+                'gateway_id' => 'INIT_PAY_' . $booking->id . '_' . time(),
                 'type' => $paymentStatus === 'full_paid' ? 'full_payment' : 'deposit_payment',
                 'amount' => $initialAmountPaid,
-                'status' => 'completed', 
+                'status' => 'completed',
                 'notes' => $couponCode ? "Pago inicial con cupón: {$couponCode}" : "Pago inicial.",
             ]);
 
             DB::commit();
 
+            // 6. LIMPIAR SESIÓN DE CUPÓN
             Session::forget(['coupon_code', 'coupon_discount_amount', 'final_price', 'coupon_error', 'coupon_success']);
 
-            Mail::to($booking->customer_email)->queue(new BookingConfirmed($booking));
+            // <-- 3. BLOQUE REEMPLAZADO
+            // 7. GENERAR FACTURA Y ENVIAR EMAIL DE CONFIRMACIÓN (RF13.1)
+            try {
+                // Llamamos al servicio que hace TODO:
+                // 1. Crea la fila en la tabla 'invoices' (el Observer lo hace)
+                // 2. Genera el PDF
+                // 3. Envía el email con el PDF adjunto
+                // ¡¡CORRECCIÓN!! El Observer se dispara con 'created' o 'updated'.
+                // Si el observer está en 'updated', el status 'confirmed' de arriba NO lo dispara.
+                // Lo llamamos manualmente para asegurar.
 
-            return redirect()->route('booking.confirmation', $booking->id)
-                ->with('success', 'Reserva creada exitosamente.');
+                // Carga la reserva con las relaciones que el InvoiceService necesitará
+                $booking->load('campervan', 'inventoryItems');
 
+                $invoiceService->generate($booking);
+            } catch (\Exception $e) {
+                // Si el email o la factura fallan, no rompemos la app.
+                // El usuario ya pagó y la reserva está hecha.
+                // Logueamos el error para revisión manual.
+                Log::error("Error al generar factura/email para Booking ID {$booking->id}: " . $e->getMessage());
+            }
+
+            // 8. REDIRIGIR A LA PÁGINA DE ÉXITO
+            return redirect()->route('booking.confirmation', [
+                'id' => $booking->id,
+                'status' => 'success' // <-- ¡Añadimos esto!
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error crítico al crear la reserva: ' . $e->getMessage());
@@ -258,17 +284,17 @@ class BookingController extends Controller
     public function confirmation($id, PriceCalculatorService $priceCalculator)
     {
         $booking = Booking::with('campervan', 'inventoryItems')->findOrFail($id);
-        
+
         // 1. Recalculamos el precio base (con temporada)
         $priceBreakdown = $priceCalculator->getPriceBreakdown(
-            $booking->campervan, 
-            $booking->start_date, 
+            $booking->campervan,
+            $booking->start_date,
             $booking->end_date
         );
-        
+
         // 2. Recalculamos el precio de los extras
         $extrasPrice = $booking->inventoryItems->sum('pivot.precio_cobrado');
-        
+
         // 3. Calculamos el precio base de temporada (Original - Extras)
         $baseSeasonalPrice = $booking->original_price - $extrasPrice;
 
@@ -276,7 +302,12 @@ class BookingController extends Controller
         $durationDiscountAmount = $priceBreakdown['duration_discount_amount'];
 
         // 5. Calculamos el descuento por cupón
-        $couponDiscountAmount = $booking->discount_amount - $durationDiscountAmount;
+        // Corregido: el descuento total es 0 si es null
+        $couponDiscountAmount = ($booking->discount_amount ?? 0) - $durationDiscountAmount;
+
+        // 6. Listado de otras autocaravanas para la sección "Nuestra Flota"
+        $campervans = Campervan::orderByDesc('created_at')->limit(6)->get();
+        Log::info('CONF route hit', ['id' => $id]);
 
         return view('booking.confirmation', [
             'booking' => $booking,
@@ -284,9 +315,10 @@ class BookingController extends Controller
             'extras_price' => $extrasPrice, // Total Extras
             'duration_discount_amount' => $durationDiscountAmount, // Descuento Duración
             'coupon_discount_amount' => $couponDiscountAmount, // Descuento Cupón
+            'campervans' => $campervans, // Para sección "Nuestra Flota"
         ]);
     }
-    
+
     /**
      * Genera y descarga el contrato en PDF.
      */
@@ -298,15 +330,16 @@ class BookingController extends Controller
         // RECALCULAMOS EL DESGLOSE PARA EL PDF (RF12.2)
         // ==========================================================
         $priceBreakdown = $priceCalculator->getPriceBreakdown(
-            $booking->campervan, 
-            $booking->start_date, 
+            $booking->campervan,
+            $booking->start_date,
             $booking->end_date
         );
-        
+
         $extrasPrice = $booking->inventoryItems->sum('pivot.precio_cobrado');
         $baseSeasonalPrice = $booking->original_price - $extrasPrice;
         $durationDiscountAmount = $priceBreakdown['duration_discount_amount'];
-        $couponDiscountAmount = $booking->discount_amount - $durationDiscountAmount;
+        // Corregido: el descuento total es 0 si es null
+        $couponDiscountAmount = ($booking->discount_amount ?? 0) - $durationDiscountAmount;
         // ==========================================================
 
         $pdf = Pdf::loadView('pdf.contract', [
@@ -316,9 +349,41 @@ class BookingController extends Controller
             'duration_discount_amount' => $durationDiscountAmount,
             'coupon_discount_amount' => $couponDiscountAmount,
         ]);
-        
+
         $pdf->setPaper('a4', 'portrait');
         $fileName = 'contrato_reserva_' . $booking->id . '.pdf';
+
+        return $pdf->download($fileName);
+    }
+
+    // ==========================================================
+    // ¡¡NUEVO MÉTODO AÑADIDO!! (RF13.1)
+    // ==========================================================
+    /**
+     * Genera y descarga la factura en PDF.
+     */
+    public function downloadInvoice(Booking $booking)
+    {
+        // Carga la reserva CON la factura y la campervan
+        $booking->load('invoice', 'campervan');
+
+        // Valida si la factura existe
+        if (!$booking->invoice) {
+            // Si no existe, buscamos por si acaso
+            $invoice = \App\Models\Invoice::where('booking_id', $booking->id)->first();
+            if (!$invoice) {
+                abort(404, 'Factura no encontrada para esta reserva.');
+            }
+            $booking->setRelation('invoice', $invoice);
+        }
+
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'invoice' => $booking->invoice,
+            'booking' => $booking
+        ]);
+        
+        $pdf->setPaper('a4', 'portrait');
+        $fileName = 'Factura-' . $booking->invoice->invoice_number . '.pdf';
         
         return $pdf->download($fileName);
     }

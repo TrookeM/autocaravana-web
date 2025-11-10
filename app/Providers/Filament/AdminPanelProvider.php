@@ -21,6 +21,8 @@ use App\Filament\Widgets\GlobalStatsWidget;
 use App\Filament\Widgets\BookingsChart;
 use App\Filament\Widgets\CampervanIncomeChart;
 use App\Filament\Widgets\YearFilterWidget;
+use App\Models\Booking;
+use App\Observers\BookingObserver;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -62,5 +64,14 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        
+        // Aquí registramos el Observer
+        Booking::observe(BookingObserver::class);
     }
 }

@@ -10,24 +10,20 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class BookingClosedMail extends Mailable
+class BookingCancelledMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $booking;
-    public $extraKmCharge; // <-- Nueva variable
-    public $extraKm;       // <-- Nueva variable
+    public $reason;
 
     /**
      * Create a new message instance.
-     *
-     * AHORA ACEPTA LOS CARGOS CALCULADOS
      */
-    public function __construct(Booking $booking, $extraKmCharge, $extraKm)
+    public function __construct(Booking $booking, string $reason)
     {
         $this->booking = $booking;
-        $this->extraKmCharge = $extraKmCharge;
-        $this->extraKm = $extraKm;
+        $this->reason = $reason;
     }
 
     /**
@@ -36,7 +32,7 @@ class BookingClosedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Resumen de tu viaje (Reserva #' . $this->booking->id . ')',
+            subject: 'Tu Reserva ha sido Cancelada (#' . $this->booking->id . ')',
         );
     }
 
@@ -45,18 +41,19 @@ class BookingClosedMail extends Mailable
      */
     public function content(): Content
     {
-        // Ya no necesitamos calcular nada, solo pasamos las variables a la vista
+        // Usaremos una nueva vista: 'emails.booking-cancelled'
         return new Content(
-            view: 'emails.booking-closed',
+            view: 'emails.booking-cancelled',
             with: [
-                'extraKmCharge' => $this->extraKmCharge,
-                'extraKm' => $this->extraKm,
-            ]
+                'reason' => $this->reason,
+            ],
         );
     }
 
     /**
      * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
     public function attachments(): array
     {

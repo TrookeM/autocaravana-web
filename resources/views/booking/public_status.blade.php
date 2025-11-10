@@ -1,241 +1,235 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estado de tu Reserva (#{{ $booking->id }})</title>
-    <style>
-        /* =================================== */
-        /* --- FONDO MODIFICADO --- */
-        /* =================================== */
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            color: #333; 
-            
-            /* 1. Color de fondo verde pálido (de tu tema) */
-            background-color: #f0fdf4; 
-            
-            /* 2. IMAGEN DE FONDO (¡DEBES CAMBIAR ESTO!) */
-            /* - Cambia la URL por la ruta a tu imagen. */
-            /* - La 'tonalidad verde' se la damos con el 'linear-gradient' */
-            background-image: 
-                linear-gradient(rgba(240, 253, 244, 0.85), rgba(240, 253, 244, 0.85)), /* Capa de tonalidad verde */
-                url('/images/tu-imagen-de-fondo.jpg'); /* <-- ¡CAMBIA ESTA RUTA! */
-            
-            /* 3. Estilos para que la imagen cubra todo */
-            background-size: cover;
-            background-position: center center;
-            background-attachment: fixed; /* Opcional: deja la imagen fija al hacer scroll */
-        }
-        
-        .container { 
-            max-width: 800px; 
-            margin: 20px auto; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            overflow: hidden; 
-            background-color: #fff; /* Contenedor blanco para que resalte */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-        }
-        .header { background-color: #f4f4f4; padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
-        .header h1 { margin: 0; color: #059669; } /* Tono verde principal (¡Perfecto!) */
-        .content { padding: 30px; }
-        .content p { line-height: 1.6; }
-        .details { background-color: #fafafa; padding: 20px; border-radius: 5px; }
-        .details th { text-align: left; padding: 8px; border-bottom: 1px solid #eee; color: #666; font-weight: normal; }
-        .details td { text-align: right; padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; }
-        .details .time-note { color: #666; font-weight: normal; font-size: 0.9em; display: block; }
-        
-        /* ... (el resto de estilos de desglose de precios y pago se quedan igual) ... */
-        .price-breakdown th, .price-breakdown td { padding-top: 15px; }
-        .price-breakdown .total-final-label { border-top: 2px solid #ddd; font-weight: bold; font-size: 1.1em; }
-        .price-breakdown .total-final-value { border-top: 2px solid #ddd; font-size: 1.2em; }
-        .payment-breakdown .deposit-paid { color: #059669; }
-        .payment-breakdown .amount-due-label { background-color: #fffbeb; color: #b45309; font-weight: bold; }
-        .payment-breakdown .amount-due-value { background-color: #fffbeb; color: #b45309; }
-        .payment-breakdown .full-paid-label { background-color: #f0fdf4; color: #15803d; font-size: 1.1em; font-weight: bold; }
-        .payment-breakdown .full-paid-value { background-color: #f0fdf4; color: #15803d; font-size: 1.2em; }
-        .info-box {
-            margin-top: 25px; padding: 15px; border-radius: 5px;
-            background-color: #fffbeb; border: 1px solid #fef08a; color: #b45309;
-        }
-        .extras-list { margin: 0; padding-left: 20px; text-align: left; font-size: 0.95em; }
-        .extras-list li { margin-bottom: 5px; }
-        .guides-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
-        .guides-section h2 { margin: 0 0 15px 0; color: #333; font-size: 1.2em; }
-        .guide-item { background-color: #fafafa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #eee; }
-        .guide-item h3 { margin: 0 0 10px 0; color: #059669; } /* Tono verde principal (¡Perfecto!) */
-        .guide-content { font-size: 0.95em; line-height: 1.5; color: #555; }
-        .guide-content p { margin: 0 0 10px 0; }
-        .guide-content ul, .guide-content ol { margin-left: 20px; margin-bottom: 10px; padding-left: 0; }
+@extends('layouts.app')
 
-        /* =================================== */
-        /* --- BOTONES MODIFICADOS --- */
-        /* =================================== */
+{{-- 1. Título de la página --}}
+@section('title', 'Estado de tu Reserva (#' . $booking->id . ')')
 
-        /* Botón de Descarga de PDF (Guías) */
-        .pdf-download-link {
-            display: inline-block;
-            background-color: #047857; /* Tono verde más oscuro */
-            color: #ffffff;
-            padding: 8px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 0.9em;
-        }
-        
-        /* Botón de Contrato (Principal) */
-        .contract-button {
-            display: inline-block;
-            background-color: #059669; /* Tono verde principal */
-            color: #ffffff;
-            padding: 12px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 1.1em;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        /* Efecto Hover para ambos botones */
-        .pdf-download-link:hover, .contract-button:hover {
-            opacity: 0.85;
-        }
+{{-- 2. "Empujamos" los estilos CSS específicos de esta página al <head> del layout --}}
+@push('styles')
+<style>
+    /* Como usamos Tailwind, solo necesitamos un par de estilos 
+      para la tabla que no son estándar
+    */
+    .details-table th { 
+        text-align: left; 
+        width: 40%; /* Damos un ancho fijo a las etiquetas */
+    }
+    .details-table th,
+    .details-table td {
+        padding-top: 0.75rem; /* 12px */
+        padding-bottom: 0.75rem; /* 12px */
+    }
+</style>
+@endpush
 
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Estado de tu Reserva</h1>
+
+@section('content')
+{{-- 
+  3. USAMOS EL MISMO WRAPPER QUE contacto.blade.php
+  Esto añade el padding-top (pt-32) para que el contenido no quede
+  oculto detrás de la barra de navegación fija.
+--}}
+<section class="min-h-screen pt-32 pb-20 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-6">
+        
+        {{-- Título --}}
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-emerald-800">Estado de tu Reserva</h1>
+            <p class="text-lg text-gray-700 mt-2">Hola <strong>{{ $booking->customer_name }}</strong>, aquí tienes todos los detalles.</p>
         </div>
-        <div class="content">
-            <p>Hola <strong>{{ $booking->customer_name }}</strong>,</p>
-            <p>Aquí puedes consultar los detalles de tu reserva, descargar tu contrato y ver las guías de uso de tu autocaravana.</p>
-            
-            <a href="{{ route('booking.contract.download', $booking) }}" class="contract-button" style="display: block;">
-                Descargar Contrato (PDF)
-            </a>
-            
-            <table class="details" width="100%">
-                <tr>
-                    <th>Número de Reserva:</th>
-                    <td>#{{ $booking->id }}</td>
-                </tr>
-                 <tr>
-                    <th>Estado de la Reserva:</th>
-                    <td style="color: #059669;">{{ ucfirst($booking->status) }}</td>
-                </tr>
-                <tr>
-                    <th>Autocaravana:</th>
-                    <td>{{ $booking->campervan->name }}</td>
-                </tr>
-                <tr>
-                    <th>Check-in:</th>
-                    <td>
-                        {{ $booking->start_date->format('d/m/Y') }}
-                        @if($booking->campervan->check_in_time)
-                            <span class="time-note">
-                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_in_time)->format('H:i') }}
-                            </span>
-                        @endif
-                    </td>
-                </tr>
-                <tr>
-                    <th>Check-out:</th>
-                    <td>
-                        {{ $booking->end_date->format('d/m/Y') }}
-                        @if($booking->campervan->check_out_time)
-                            <span class="time-note">
-                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_out_time)->format('H:i') }}
-                            </span>
-                        @endif
-                    </td>
-                </tr>
 
-                @if ($booking->inventoryItems->isNotEmpty())
-                    <tr>
-                        <th style="vertical-align: top; padding-top: 10px;">Extras Contratados:</th>
-                        <td style="padding-top: 10px;">
-                            <ul class="extras-list">
-                                @foreach ($booking->inventoryItems as $item)
-                                    <li>
-                                        {{ $item->name }}
-                                        ({{ number_format($item->pivot->precio_cobrado, 2) }}€)
-                                    </li>
-                                @endforeach
-                            </ul>
+        {{-- 
+          4. TARJETA PRINCIPAL DE DETALLES
+        --}}
+        <div class="bg-white p-8 md:p-12 rounded-2xl shadow-2xl overflow-hidden">
+            
+            <table class="w-full text-sm details-table">
+                <tbody>
+                    <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-gray-500">Número de Reserva</th>
+                        <td class="py-3 px-2 font-bold text-gray-900">#{{ $booking->id }}</td>
+                    </tr>
+                     <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-gray-500">Estado de la Reserva</th>
+                        <td class="py-3 px-2 font-bold text-emerald-600">{{ ucfirst($booking->status) }}</td>
+                    </tr>
+                    <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-gray-500">Autocaravana</th>
+                        <td class="py-3 px-2 font-bold text-gray-900">{{ $booking->campervan->name }}</td>
+                    </tr>
+                    <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-gray-500">Check-in</th>
+                        <td class="py-3 px-2 font-bold text-gray-900">
+                            {{ $booking->start_date->format('d/m/Y') }}
+                            @if($booking->campervan->check_in_time)
+                                <span class="text-gray-500 font-medium text-xs block">
+                                    (a las {{ \Carbon\Carbon::parse($booking->campervan->check_in_time)->format('H:i') }})
+                                </span>
+                            @endif
                         </td>
                     </tr>
-                @endif
-                
-                <tr class="price-breakdown">
-                    <th class="total-final-label">PRECIO TOTAL:</th>
-                    <td class="total-final-value">{{ number_format($booking->total_price, 2) }}€</td>
-                </tr>
+                    <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-gray-500">Check-out</th>
+                        <td class="py-3 px-2 font-bold text-gray-900">
+                            {{ $booking->end_date->format('d/m/Y') }}
+                            @if($booking->campervan->check_out_time)
+                                <span class="text-gray-500 font-medium text-xs block">
+                                    (a las {{ \Carbon\Carbon::parse($booking->campervan->check_out_time)->format('H:i') }})
+                                </span>
+                            @endif
+                        </td>
+                    </tr>
 
-                @if ($booking->payment_status === 'deposit_paid')
-                    <tr class="payment-breakdown">
-                        <th style="border-top: 2px solid #ddd; padding-top: 15px;">Pagado (Señal):</th>
-                        <td style="border-top: 2px solid #ddd; padding-top: 15px;" class="deposit-paid">{{ number_format($booking->amount_paid, 2) }}€</td>
+                    @if ($booking->inventoryItems->isNotEmpty())
+                        <tr class="border-b border-gray-100">
+                            <th class="py-3 px-2 font-medium text-gray-500 align-top">Extras Contratados</th>
+                            <td class="py-3 px-2 font-bold text-gray-900">
+                                <ul class="list-none m-0 p-0 space-y-1">
+                                    @foreach ($booking->inventoryItems as $item)
+                                        <li>
+                                            {{ $item->name }}
+                                            <span class="text-gray-500 font-medium">({{ number_format($item->pivot->precio_cobrado, 2) }}€)</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                        </tr>
+                    @endif
+                    
+                    {{-- =================================== --}}
+                    {{-- DESGLOSE DE PRECIO IDÉNTICO A CONFIRMATION --}}
+                    {{-- =================================== --}}
+                    <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-gray-500">Base (temporada)</th>
+                        <td class="py-3 px-2 font-medium text-gray-800">{{ number_format($base_seasonal_price, 2) }} €</td>
                     </tr>
-                    <tr class="payment-breakdown">
-                        <th class="amount-due-label">Pendiente de Pago:</th>
-                        <td class="amount-due-value">{{ number_format($booking->amount_due, 2) }}€</td>
+                    <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-gray-500">Extras</th>
+                        <td class="py-3 px-2 font-medium text-gray-800">{{ number_format($extras_price, 2) }} €</td>
                     </tr>
-                @else
-                    <tr class="payment-breakdown">
-                        <th class="full-paid-label" style="border-top: 2px solid #ddd; padding-top: 15px;">Total Pagado (100%):</th>
-                        <td class="full-paid-value" style="border-top: 2px solid #ddd; padding-top: 15px;">{{ number_format($booking->total_price, 2) }}€</td>
+                    @if($duration_discount_amount > 0)
+                    <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-emerald-600">Descuento larga estancia</th>
+                        <td class="py-3 px-2 font-medium text-emerald-600">-{{ number_format($duration_discount_amount, 2) }} €</td>
                     </tr>
-                @endif
+                    @endif
+                    @if($coupon_discount_amount > 0)
+                     <tr class="border-b border-gray-100">
+                        <th class="py-3 px-2 font-medium text-emerald-600">Descuento cupón</th>
+                        <td class="py-3 px-2 font-medium text-emerald-600">-{{ number_format($coupon_discount_amount, 2) }} €</td>
+                    </tr>
+                    @endif
+                    {{-- =================================== --}}
+                    {{-- FIN DEL DESGLOSE --}}
+                    {{-- =================================== --}}
+
+                    <tr class="border-b border-gray-100 text-base">
+                        <th class="py-4 px-2 font-bold text-gray-900">PRECIO TOTAL</th>
+                        <td class="py-4 px-2 text-xl font-extrabold text-emerald-700">{{ number_format($booking->total_price, 2) }}€</td>
+                    </tr>
+
+                    @if ($booking->payment_status === 'deposit_paid')
+                        <tr class="border-b border-gray-100">
+                            <th class="py-3 px-2 font-medium text-gray-500">Pagado (Señal)</th>
+                            <td class="py-3 px-2 font-bold text-emerald-600">{{ number_format($booking->amount_paid, 2) }}€</td>
+                        </tr>
+                        <tr class="bg-yellow-50">
+                            <th class="py-3 px-2 font-bold text-yellow-800">Pendiente de Pago</th>
+                            <td class="py-3 px-2 font-bold text-yellow-800">{{ number_format($booking->amount_due, 2) }}€</td>
+                        </tr>
+                    @else
+                        <tr class="bg-emerald-50">
+                            <th class="py-3 px-2 font-bold text-emerald-800">Total Pagado (100%)</th>
+                            <td class="py-3 px-2 font-bold text-emerald-800">{{ number_format($booking->total_price, 2) }}€</td>
+                        </tr>
+                    @endif
+                </tbody>
             </table>
 
             @if ($booking->payment_status === 'deposit_paid')
-                <div class="info-box">
-                    <p style="margin: 0;">
-                        <strong>Importante:</strong> El pago restante de <strong>{{ number_format($booking->amount_due, 2) }}€</strong> vence el <strong>{{ $booking->payment_due_date ? $booking->payment_due_date->format('d/m/Y') : 'N/A' }}</strong>.
+                <div class="mt-6 p-4 rounded-lg bg-yellow-100 border border-yellow-200 text-yellow-800">
+                    <p class="font-bold">¡Importante!</p>
+                    <p class="text-sm">
+                        El pago restante de <strong>{{ number_format($booking->amount_due, 2) }}€</strong> vence el <strong>{{ $booking->payment_due_date ? $booking->payment_due_date->format('d/m/Y') : 'N/A' }}</strong>.
                     </p>
                 </div>
             @endif
+        </div>
+        
+        {{-- 
+          5. NUEVA SECCIÓN DE DOCUMENTOS
+        --}}
+        <div class="mt-12">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">Tus Documentos</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {{-- Botón de Contrato (Estilo Tailwind) --}}
+                <a href="{{ route('booking.contract.download', $booking) }}"
+                   class="flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition transform hover:-translate-y-1 duration-300 text-center">
+                    <svg class="h-12 w-12 text-emerald-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    <span class="text-xl font-bold text-gray-800">Descargar Contrato</span>
+                    <span class="text-sm text-gray-500 mt-1">Tu acuerdo de alquiler (PDF)</span>
+                </a>
+                
+                {{-- Botón de Factura (Estilo Tailwind) --}}
+                <a href="{{ route('booking.invoice.download', $booking) }}"
+                   class="flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition transform hover:-translate-y-1 duration-300 text-center">
+                    <svg class="h-12 w-12 text-emerald-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <span class="text-xl font-bold text-gray-800">Descargar Factura</span>
+                    <span class="text-sm text-gray-500 mt-1">Tu justificante de pago (PDF)</span>
+                </a>
+            </div>
+        </div>
 
-            
-            @if ($booking->campervan->guides->isNotEmpty())
-                <div class="guides-section">
-                    <h2>Guías y Manuales de tu Campervan</h2>
-                    <p style="margin-top: 0; margin-bottom: 15px; font-size: 0.95em; color: #555;">
-                        Aquí tienes las guías y manuales de uso para tu autocaravana.
-                    </p>
-                    
+        {{-- 
+          6. NUEVA SECCIÓN DE GUÍAS
+        --}}
+        @if ($booking->campervan->guides->isNotEmpty())
+            <div class="mt-16">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-8 text-center">Guías y Manuales</h2>
+                
+                <div class="space-y-6">
                     @foreach ($booking->campervan->guides as $guide)
-                        <div class="guide-item">
-                            <h3>{{ $guide->title }}</h3>
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+                            {{-- Icono --}}
+                            <div class="flex-shrink-0 p-6 bg-emerald-50 flex items-center justify-center md:w-32">
+                                <svg class="h-10 w-10 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
+                                </svg>
+                            </div>
+                            
+                            {{-- Contenido --}}
+                            <div class="p-6 flex-grow">
+                                <h3 class="text-xl font-bold text-emerald-800">{{ $guide->title }}</h3>
 
-                            @if ($guide->content)
-                                <div class="guide-content">
-                                    {!! $guide->content !!}
-                                </div>
-                            @endif
+                                @if ($guide->content)
+                                    {{-- Aplicamos 'prose' para formatear el HTML del editor --}}
+                                    <div class="prose prose-sm prose-emerald mt-2 text-gray-600 max-w-none">
+                                        {!! $guide->content !!}
+                                    </div>
+                                @endif
+                            </div>
 
+                            {{-- Botón de descarga (si existe) --}}
                             @if ($guide->pdf_path)
-                                <a href="{{ asset('storage/' . $guide->pdf_path) }}" 
-                                   class="pdf-download-link" 
-                                   target="_blank" 
-                                   download>
-                                    Descargar Manual (PDF)
-                                </a>
+                                <div class="flex-shrink-0 p-6 bg-gray-50/50 flex items-center justify-center">
+                                    <a href="{{ asset('storage/'. $guide->pdf_path) }}" 
+                                       class="inline-block px-5 py-2 bg-emerald-600 text-white font-semibold rounded-full hover:bg-emerald-700 transition duration-200 text-sm" 
+                                       target="_blank" 
+                                       download>
+                                        Descargar PDF
+                                    </a>
+                                </div>
                             @endif
                         </div>
                     @endforeach
                 </div>
-            @endif
+            </div>
+        @endif
 
-        </div>
     </div>
-</body>
-</html>
+</section>
+@endsection

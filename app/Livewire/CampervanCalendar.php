@@ -192,7 +192,7 @@ class CampervanCalendar extends Component
         $dayNames = collect(range(0, 6))->map(function ($day) {
             $date = Carbon::now()->startOfWeek(Carbon::MONDAY)->addDays($day);
             if ($date->dayOfWeekIso === 3) {
-                return 'X';
+                return 'mie.';
             }
             return $date->locale('es')->translatedFormat('D');
         });

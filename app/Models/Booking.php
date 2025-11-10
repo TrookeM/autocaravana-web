@@ -125,4 +125,10 @@ class Booking extends Model
                                 ->withPivot('precio_cobrado', 'quantity_booked')
                                 ->withTimestamps();
     }
+
+    public function invoice()
+    {
+        // Una reserva (Booking) tiene una factura (Invoice)
+        return $this->hasOne(\App\Models\Invoice::class);
+    }
 }

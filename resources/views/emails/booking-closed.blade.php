@@ -16,28 +16,19 @@
         .details td { text-align: right; padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; }
         .details .time-note { color: #666; font-weight: normal; font-size: 0.9em; display: block; }
         
-        /* Estilos para el desglose de precios */
         .price-breakdown th { padding-top: 15px; }
         .price-breakdown td { padding-top: 15px; }
-        .price-breakdown .original-price { text-decoration: line-through; color: #888; font-weight: normal; }
-        .price-breakdown .coupon-label { background-color: #fff7ed; color: #c2410c; font-weight: bold; }
-        .price-breakdown .coupon-value { background-color: #fff7ed; color: #c2410c; }
         .price-breakdown .total-final-label { border-top: 2px solid #ddd; font-weight: bold; font-size: 1.1em; }
-        .price-breakdown .total-final-value { border-top: 2px solid #ddd; font-size: 1.2em; }
         
-        /* Estilos para el desglose de pago */
-        .payment-breakdown .deposit-paid { color: #059669; }
         .payment-breakdown .amount-due-label { background-color: #fffbeb; color: #b45309; font-weight: bold; }
         .payment-breakdown .amount-due-value { background-color: #fffbeb; color: #b45309; }
         .payment-breakdown .full-paid-label { background-color: #f0fdf4; color: #15803d; font-size: 1.1em; font-weight: bold; }
-        .payment-breakdown .full-paid-value { background-color: #f0fdf4; color: #15803d; font-size: 1.2em; }
+        .payment-breakdown .full-paid-value { background-color: #f0fdf4; color: #15803d; }
 
-        /* Estilo para el aviso inferior */
         .info-box {
             margin-top: 25px; padding: 15px; border-radius: 5px;
             background-color: #fffbeb; border: 1px solid #fef08a; color: #b45309;
         }
-
     </style>
 </head>
 <body>
@@ -60,25 +51,11 @@
                 </tr>
                 <tr>
                     <th>Check-in:</th>
-                    <td>
-                        {{ $booking->start_date->format('d/m/Y') }}
-                        @if($booking->campervan->check_in_time)
-                            <span class="time-note">
-                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_in_time)->format('H:i') }}
-                            </span>
-                        @endif
-                    </td>
+                    <td>{{ $booking->start_date->format('d/m/Y') }}</td>
                 </tr>
                 <tr>
                     <th>Check-out:</th>
-                    <td>
-                        {{ $booking->end_date->format('d/m/Y') }}
-                        @if($booking->campervan->check_out_time)
-                            <span class="time-note">
-                                a las {{ \Carbon\Carbon::parse($booking->campervan->check_out_time)->format('H:i') }}
-                            </span>
-                        @endif
-                    </td>
+                    <td>{{ $booking->end_date->format('d/m/Y') }}</td>
                 </tr>
 
                 <tr>
@@ -93,25 +70,17 @@
                     <td>{{ $booking->km_llegada ?? 0 }} km</td>
                 </tr>
                 
-                @php
-                    // Calculamos el límite total (asegurándonos de que $booking->start_date y end_date son objetos Carbon)
-                    $startDate = \Carbon\Carbon::parse($booking->start_date);
-                    $endDate = \Carbon\Carbon::parse($booking->end_date);
-                    $nights = $startDate->diffInDays($endDate) > 0 ? $startDate->diffInDays($endDate) : 1;
-                    $kmLimitPerDay = (int) $booking->campervan->km_limit;
-                    $totalKmLimit = $kmLimitPerDay > 0 ? $kmLimitPerDay * $nights : 0;
-                    $kmRecorridos = ($booking->km_llegada ?? 0) - ($booking->km_salida ?? 0);
-                @endphp
+                {{-- 
+                  ¡BLOQUE @php ELIMINADO! 
+                  Ahora usamos las variables $extraKmCharge y $extraKm 
+                  directamente desde el Mailable.
+                --}}
 
                 <tr>
                     <th>Kilómetros Recorridos:</th>
-                    <td>{{ $kmRecorridos }} km</td>
+                    <td>{{ ($booking->km_llegada ?? 0) - ($booking->km_salida ?? 0) }} km</td>
                 </tr>
-                <tr>
-                    <th>Límite de KM incluido:</th>
-                    <td>{{ $totalKmLimit > 0 ? $totalKmLimit . ' km' : 'Ilimitados' }}</td>
-                </tr>
-
+                
                 @if ($extraKmCharge > 0)
                     <tr class="payment-breakdown">
                         <th class="amount-due-label">KM Extra Recorridos:</th>

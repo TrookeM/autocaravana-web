@@ -17,16 +17,14 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\BadgeColumn; 
-use Filament\Tables\Columns\ActionsColumn; // ¡IMPORTANTE! Añadir esto
+use Filament\Tables\Columns\ActionsColumn; 
 
 // --- Imports para los nuevos campos del formulario ---
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Section;
-use Illuminate\Support\Facades\URL;
-use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Placeholder; // <--- Lo cambiamos
 use Filament\Forms\Get;
 use Filament\Forms\Components\CheckboxList; 
 
@@ -117,9 +115,14 @@ class BookingResource extends Resource
                         TextInput::make('amount_paid')
                             ->label('Cantidad Pagada')
                             ->numeric()->prefix('€')->default(0.00)->required(),
-                    ])->columns(3), 
+                        
+                        DatePicker::make('payment_due_date')
+                            ->label('Fecha Vencimiento Pago')
+                            ->helperText('Solo aplica si el pago es parcial (Señal Pagada).'),
 
-                // --- Sección de Kilometraje (ACTUALIZADA) ---
+                    ])->columns(4), 
+
+                // --- Sección de Kilometraje ---
                 Section::make('Registro de Entrega y Devolución')
                     ->schema([
                         TextInput::make('km_salida')
@@ -175,13 +178,20 @@ class BookingResource extends Resource
                 // --- Grupo de Notificaciones ---
                 Section::make('Notificaciones')
                     ->schema([
-                        Toggle::make('reminder_sent')
-                            ->label('Recordatorio de pago enviado')
-                            ->default(false),
-                    ])->columns(1),
+                        // ==================================
+                        // ¡¡CAMPO MODIFICADO!!
+                        // Cambiamos el Placeholder por un TextInput
+                        // ==================================
+                        TextInput::make('reminder_sent')
+                            ->label('Contador de Recordatorios')
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('0 = ninguno, 1 = 21 días, 2 = 7 días (El sistema lo incrementa solo)')
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
-
+    
     public static function table(Table $table): Table
     {
         return $table
@@ -213,15 +223,38 @@ class BookingResource extends Resource
                     ][$state] ?? $state)
                     ->sortable(),
 
-                SelectColumn::make('payment_status')
+                BadgeColumn::make('payment_status') // <-- Usar BadgeColumn es más visual
                     ->label('Estado Pago')
-                    ->options([
+                    ->colors([
+                        'gray' => Booking::STATUS_PENDING,
+                        'warning' => Booking::STATUS_DEPOSIT_PAID,
+                        'success' => Booking::STATUS_FULL_PAID,
+                    ])
+                    ->formatStateUsing(fn (string $state): string => [
                         Booking::STATUS_PENDING => 'Pendiente',
                         Booking::STATUS_DEPOSIT_PAID => 'Señal Pagada',
                         Booking::STATUS_FULL_PAID => 'Pago Total',
-                    ])
+                    ][$state] ?? $state)
                     ->sortable(),
                 
+                // ==================================
+                // ¡¡COLUMNA AÑADIDA Y MEJORADA!!
+                // ==================================
+                TextColumn::make('payment_due_date')
+                    ->label('Vencimiento Pago')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false) // Visible por defecto
+                    ->color(function(?Booking $record) {
+                        if ($record?->payment_status !== Booking::STATUS_DEPOSIT_PAID) {
+                            return 'gray';
+                        }
+                        if ($record?->payment_due_date && $record->payment_due_date->lt(now())) {
+                            return 'danger';
+                        }
+                        return 'warning';
+                    }),
+
                 TextColumn::make('end_date')
                     ->label('Check-out')
                     ->date('d/m/Y')
@@ -237,16 +270,21 @@ class BookingResource extends Resource
                 //
             ])
             ->actions([
-                // MOVEMOS LAS ACCIONES AQUÍ en lugar de en una columna
                 ActionGroup::make([
                     self::getCheckInAction(),
                     self::getCheckOutAction(),
-                    
                     Action::make('Descargar Contrato')
                         ->icon('heroicon-o-document-arrow-down')
                         ->url(fn(Booking $record): string => route('booking.contract.download', $record))
                         ->openUrlInNewTab(),
                     
+                    // ¡¡ACCIÓN AÑADIDA!! (Para descargar factura desde el admin)
+                    Action::make('Descargar Factura')
+                        ->icon('heroicon-o-currency-euro')
+                        ->url(fn(Booking $record): string => route('booking.invoice.download', $record))
+                        ->openUrlInNewTab()
+                        ->hidden(fn(Booking $record) => !$record->invoice()->exists()), // Ocultar si no hay factura
+                        
                     Action::make('Cancelar')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
@@ -262,9 +300,8 @@ class BookingResource extends Resource
             ]);
     }
     
-    // ================================================================
-    // --- ACCIÓN DE CHECK-IN (CORREGIDA) ---
-    // ================================================================
+    // ... (El resto de tu BookingResource.php: getCheckInAction(), getCheckOutAction(), etc. se quedan igual) ...
+    
     protected static function getCheckInAction(): Action
     {
         return Action::make('Iniciar Check-in')
@@ -274,11 +311,9 @@ class BookingResource extends Resource
             ->modalHeading('Iniciar Check-in de la Reserva')
             ->modalDescription('Rellena los datos de salida y verifica el inventario para activar la reserva.')
             ->visible(function (Booking $record): bool {
-                // SOLO verifica el estado - sin verificación de fecha
                 return $record->status === 'confirmed';
             })
             ->form([
-                // --- Grupo 1: Datos ---
                 Section::make('Datos de Salida')
                     ->schema([
                         TextInput::make('km_salida')
@@ -299,19 +334,15 @@ class BookingResource extends Resource
                             ->options(self::getFuelLevelOptions())
                             ->required(),
                     ])->columns(2),
-
-                // --- Grupo 2: Checklist de Inventario (RF9.2) ---
                 Section::make('Checklist de Inventario')
                     ->schema([
                         CheckboxList::make('inventory_checklist_out')
                             ->label('Marcar items entregados')
                             ->options(function (Booking $record) {
                                 $record->load('campervan.inventoryItems');
-                                
                                 if (!$record->campervan || $record->campervan->inventoryItems->isEmpty()) {
                                     return ['ninguno' => 'Esta camper no tiene items de inventario configurados.'];
                                 }
-
                                 return $record->campervan->inventoryItems
                                     ->mapWithKeys(fn($item) => [
                                         $item->name => "{$item->name} (x{$item->quantity})"
@@ -338,7 +369,6 @@ class BookingResource extends Resource
             });
     }
 
-    // --- ACCIÓN DE CHECK-OUT (CORREGIDA) ---
     protected static function getCheckOutAction(): Action
     {
         return Action::make('Finalizar Check-out')
@@ -410,7 +440,7 @@ class BookingResource extends Resource
 
                 $cargoTotal = $cargoKm + $data['extra_charge_fuel'] + $data['extra_charge_other'];
                 
-                // Mail::to($record->customer_email)->send(new BookingClosedMail($record, $cargoTotal, $kmExtra));
+                Mail::to($record->customer_email)->send(new BookingClosedMail($record, $cargoTotal, $kmExtra));
                 
                 Notification::make()
                     ->title('¡Reserva Completada!')
@@ -424,7 +454,7 @@ class BookingResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\InvoiceRelationManager::class, // ¡¡Asegúrate de que esto está aquí!!
         ];
     }
     

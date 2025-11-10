@@ -294,15 +294,82 @@
 
                 {{-- PRECIO BASE --}}
                 @php
-                $applyStrike = $duration_discount_amount > 0;
+                $applyStrike = $duration_discount_amount > 0 || $coupon_discount_amount > 0;
+                $subtotal = $base_seasonal_price + $extras_price;
                 @endphp
                 <tr class="price-breakdown">
                     <th>Precio Base (Temporada)</th>
+                    {{-- Mostramos el subtotal (base + extras) tachado si hay CUALQUIER descuento --}}
                     <td class="base-price-cell {{ $applyStrike ? 'base-price-strike' : '' }}">
                         {{ number_format($base_seasonal_price, 2) }}€
                     </td>
                 </tr>
 
+                {{-- ========================================================== --}}
+                {{-- ¡¡FILA CORREGIDA / AÑADIDA!! --}}
+                {{-- ========================================================== --}}
+                @if ($extras_price > 0)
+                <tr class="price-breakdown">
+                    <th>Coste de Extras</th>
+                    <td class="{{ $applyStrike ? 'base-price-strike' : '' }}">+{{ number_format($extras_price, 2) }}€</td>
+                </tr>
+                @endif
+                {{-- ========================================================== --}}
+
                 {{-- DESCUENTO POR DURACIÓN --}}
                 @if ($duration_discount_amount > 0)
                 <tr class="price-breakdown">
+                    <th>Descuento Larga Estancia</th>
+                    <td>-{{ number_format($duration_discount_amount, 2) }}€</td>
+                </tr>
+                @endif
+                
+                {{-- ========================================================== --}}
+                {{-- ¡¡FILA AÑADIDA (para robustez)!! --}}
+                {{-- ========================================================== --}}
+                @if ($coupon_discount_amount > 0)
+                <tr class="price-breakdown coupon-label">
+                    <th class="coupon-label">Descuento Cupón ({{ $booking->coupon_code }})</th>
+                    <td class="coupon-value">-{{ number_format($coupon_discount_amount, 2) }}€</td>
+                </tr>
+                @endif
+                {{-- ========================================================== --}}
+
+
+                {{-- TOTAL FINAL --}}
+                <tr class="price-breakdown">
+                    <th class="total-final-label">Precio Total Final</th>
+                    <td class="total-final-value">{{ number_format($booking->total_price, 2) }}€</td>
+                </tr>
+            </table>
+
+            {{-- DESGLOSE DE PAGO --}}
+            <table class="details payment-breakdown" style="margin-top: 15px;">
+                @php
+                $amountPaid = (float) ($booking->amount_paid ?? 0);
+                $total = (float) ($booking->total_price ?? 0);
+                $remaining = max(0, $total - $amountPaid);
+                @endphp
+                @if ($amountPaid > 0 && $remaining > 0.01) {{-- Usar 0.01 para errores de precisión --}}
+                <tr>
+                    <th class="deposit-paid">Depósito pagado</th>
+                    <td class="deposit-paid">-{{ number_format($amountPaid, 2) }}€</td>
+                </tr>
+                <tr>
+                    <th class="amount-due-label">Importe pendiente</th>
+                    <td class="amount-due-value">{{ number_format($remaining, 2) }}€</td>
+                </tr>
+                @else
+                <tr>
+                    <th class="full-paid-label">Estado del pago</th>
+                    <td class="full-paid-value">Pagado</td>
+                </tr>
+                @endif
+            </table>
+
+            <p class="info-box">Recibirás más información y tu documentación adjunta. Gracias por confiar en nosotros.</p>
+
+        </div>
+    </div>
+</body>
+</html>

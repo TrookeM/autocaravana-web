@@ -10,20 +10,30 @@
         </div>
     @endif
 
+    <!-- ✅ CORRECCIÓN: Usar x-init con $wire y un getter a prueba de nulos -->
     <form wire:submit.prevent="submitReview" 
           class="card mb-8"
           x-data="{
-              name: @entangle('customer_name'),
-              email: @entangle('customer_email'),
-              rating: @entangle('rating'),
-              comment: @entangle('comment'),
+              name: null,
+              email: null,
+              rating: null,
+              comment: null,
+              
               get isValid() {
-                  return this.name.trim() !== '' && 
-                         this.email.trim() !== '' && 
-                         this.rating > 0 &&
-                         this.comment.trim() !== '';
+                  // Comprueba que los valores no sean nulos ANTES de usar .trim()
+                  const s = (v) => (typeof v === 'string' ? v : (v == null ? '' : String(v))).trim();
+                  return s(this.name) !== '' &&
+                         s(this.email) !== '' &&
+                         Number(this.rating ?? 0) > 0 &&
+                         s(this.comment) !== '';
               }
-          }">
+          }"
+          x-init="
+              name = $wire.entangle('customer_name');
+              email = $wire.entangle('customer_email');
+              rating = $wire.entangle('rating');
+              comment = $wire.entangle('comment');
+          ">
 
         <h3 class="text-xl font-bold text-gray-800 mb-4">Deja tu valoración</h3>
         <p class="text-gray-600 mb-6">Escribe el email que usaste en tu reserva completada para validarla.</p>

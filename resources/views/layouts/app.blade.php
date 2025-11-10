@@ -5,11 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Campers - Tu Aventura Comienza Aquí')</title>
-    {{-- Asegúrate de que los assets de Tailwind y JS estén compilados con Vite --}}
+
+    <!-- ✅ 1. CARGA VITE (CON app.js) PRIMERO, EN EL HEAD -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Importa Inter font si no lo tienes ya en tu app.css --}}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- ✅ 2. CARGA LOS ESTILOS DE LIVEWIRE -->
+    @livewireStyles
 </head>
 
 <body class="font-sans antialiased bg-white text-gray-800">
@@ -20,8 +23,8 @@
                 {{-- Logo --}}
                 <a href="/" id="nav-logo">
                     <img src="{{ asset('images/logo.png') }}"
-                        alt="Logo de Campers"
-                        class="h-18 w-auto"> {{-- Ajusta el tamaño 'h-10' --}}
+                         alt="Logo de Campers"
+                         class="h-18 w-auto">
                 </a>
 
                 {{-- Navegación para Escritorio --}}
@@ -123,6 +126,7 @@
         </div>
     </footer>
 
+    <!-- ✅ 3. CARGA LOS SCRIPTS DE LIVEWIRE AL FINAL DEL BODY, DESPUÉS DE VITE -->
+    @livewireScripts
 </body>
-
 </html>

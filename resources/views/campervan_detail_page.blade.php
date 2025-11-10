@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Detalle de Autocaravana: {{ $campervan->name ?? 'No encontrada' }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite(['resources/css/app.css','resources/js/app.js'])
+
+    <!-- ✅ 1. Solo el CSS de Vite va en el Head -->
+    @vite(['resources/css/app.css'])
+
     @livewireStyles
 </head>
 
@@ -38,25 +41,24 @@
                     prevImage() { this.currentImage = (this.currentImage - 1 + this.imageCount) % this.imageCount; },
                     nextImage() { this.currentImage = (this.currentImage + 1) % this.imageCount; },
                     openZoom(image) { this.zoomImage = image; this.isZoomOpen = true; }
-                 }" class="mb-8 relative">
+                   }" class="mb-8 relative">
 
                 <div class="gallery-main">
                     <template x-for="(image, index) in images" :key="index">
                         <img :src="image === 'placeholder' ? 'https://placehold.co/1200x600/10b981/ffffff?text=Tu+Autocaravana+Fantástica' : '{{ $storageUrl }}' + image"
-                            :alt="'Imagen ' + (index + 1)"
-                            x-show="currentImage === index"
-                            x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0"
-                            x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition ease-in duration-300 absolute top-0 left-0 w-full h-full"
-                            x-transition:leave-end="opacity-0"
-                            {{-- Usamos la versión del @click que tenías antes --}}
-                            @click="
-                             openZoom(images[currentImage] === 'placeholder' 
-                                 ? 'https://placehold.co/1200x800/10b981/ffffff?text=Tu+Autocaravana+Fantástica' 
-                                 : '{{ $storageUrl }}' + images[currentImage])
-                             "
-                            class="w-full h-full object-cover cursor-zoom-in">
+                             :alt="'Imagen ' + (index + 1)"
+                             x-show="currentImage === index"
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition ease-in duration-300 absolute top-0 left-0 w-full h-full"
+                             x-transition:leave-end="opacity-0"
+                             @click="
+                               openZoom(images[currentImage] === 'placeholder' 
+                                   ? 'https://placehold.co/1200x800/10b981/ffffff?text=Tu+Autocaravana+Fantástica' 
+                                   : '{{ $storageUrl }}' + images[currentImage])
+                               "
+                             class="w-full h-full object-cover cursor-zoom-in">
                     </template>
                 </div>
 
@@ -74,28 +76,22 @@
                 <div class="flex space-x-2 overflow-x-auto p-1 mt-4">
                     <template x-for="(image, index) in images" :key="index">
                         <img :src="image === 'placeholder' ? 'https://placehold.co/100x70.png?text=Img' : '{{ $storageUrl }}' + image"
-                            @click="currentImage = index"
-                            :class="{'ring-2 ring-emerald-500 ring-offset-2': currentImage === index, 'opacity-70': currentImage !== index}"
-                            class="gallery-thumbnail hover:scale-105">
+                             @click="currentImage = index"
+                             :class="{'ring-2 ring-emerald-500 ring-offset-2': currentImage === index, 'opacity-70': currentImage !== index}"
+                             class="gallery-thumbnail hover:scale-105">
                     </template>
                 </div>
 
-                {{-- Usamos la estructura que funcionaba para cerrar (@click.self) --}}
                 <div x-cloak x-show="isZoomOpen" x-transition.opacity
-                    class="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
-                    @keydown.escape.window="isZoomOpen=false"
-                    @click.self="isZoomOpen=false"> {{-- Closes ONLY if background itself is clicked --}}
-
-                    {{-- @click.stop prevents clicks inside this div from reaching the background --}}
+                     class="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+                     @keydown.escape.window="isZoomOpen=false"
+                     @click.self="isZoomOpen=false"> 
                     <div class="relative w-full h-full max-w-7xl max-h-screen" @click.stop>
-
-                        {{-- CLICK HANDLER ADDED HERE --}}
                         <img :src="zoomImage" alt="Imagen ampliada" class="w-full h-full object-contain"
-                            @click="isZoomOpen = false"> {{-- Closes modal if image is clicked --}}
-
+                             @click="isZoomOpen = false">
                         <button @click="isZoomOpen=false"
-                            class="absolute top-4 right-4 p-3 bg-white/30 hover:bg-white/50 text-white rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            aria-label="Cerrar imagen ampliada">
+                                class="absolute top-4 right-4 p-3 bg-white/30 hover:bg-white/50 text-white rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                aria-label="Cerrar imagen ampliada">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -131,7 +127,11 @@
     </div>
     @endif
 
+    <!-- ✅ 2. CORRECCIÓN DE ORDEN DE CARGA -->
+    <!-- Carga tu app.js (que registra 'calendar' y 'couponLogic' pero NO inicia Alpine) -->
+    @vite(['resources/js/app.js'])
+    
+    <!-- 3. Carga Livewire. Livewire verá 'window.Alpine', inyectará '$wire' y llamará a 'Alpine.start()' por ti -->
     @livewireScripts
 </body>
-
 </html>
