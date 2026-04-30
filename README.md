@@ -1,58 +1,69 @@
-## 📘 Proyecto Autocaravana
+# 🚀 Caravan Renting Platform (Autocaravana Project)
 
-Guía rápida para arrancar el entorno de desarrollo local en Windows + WSL y desplegar el proyecto en producción.
-
----
-
-## ⚠️ Prerrequisito Indispensable
-
-* **Docker Desktop** debe estar **iniciado** y funcionando (el icono de la ballena estable) antes de ejecutar cualquier comando.
+A full-stack enterprise-grade web application for caravan rental management. Built with **Laravel Sail**, **Livewire**, and **Tailwind CSS**, this platform focuses on high availability, secure data management, and automated user notifications.
 
 ---
 
-## 🚀 Arranque del Entorno (2 Terminales)
+## 🌟 Key Features
 
-Necesitarás **dos (2) terminales de Ubuntu (WSL)** abiertas simultáneamente.
+* **Custom Admin Dashboard:** Specialized panel for managing fleet, bookings, and customer data.
+* **Asynchronous UX:** Implementation of AJAX and Livewire for a seamless, "Single Page Application" feel during the booking and checkout processes.
+* **Automated Notification Engine:** System-wide automated emails for booking confirmations and reminders.
+* **Secure Infrastructure:** Designed with security-by-default principles, including protection against SQL injection and XSS via Laravel’s Eloquent and Blade engines.
+* **Reporting Tools:** Generation of PDF invoices and rental contracts on-the-fly.
 
 ---
 
-### 1️⃣ Terminal 1: Backend (PHP + Base de Datos)
+## 🛠️ Tech Stack
 
-Esta terminal arranca el servidor web y la base de datos.
+* **Backend:** PHP 8.x | Laravel Framework
+* **Frontend:** Blade | Livewire (Reactive UI) | Alpine.js | Tailwind CSS
+* **Database:** MySQL (Relational modeling & normalization)
+* **DevOps & Environment:** Docker (Laravel Sail) | Vite | Git
+* **Automation:** Linux Cron Jobs for scheduled tasks (Daily backups & Email reminders)
+
+---
+
+## ⚠️ Prerequisites
+
+* **Docker Desktop:** Ensure the Docker engine is running before starting the environment.
+* **WSL 2:** Highly recommended for Windows users to ensure native Linux performance and compatibility.
+
+---
+
+## 🚀 Local Development Setup
+
+To start the development environment, you will need **two (2) Ubuntu (WSL) terminals** running simultaneously.
+
+### 1️⃣ Backend & Database (Terminal 1)
+
+This command initializes the web server, PHP, and MySQL containers.
 
 ```bash
-# 1. Abre una terminal de Ubuntu.
-# 2. Navega a la carpeta del proyecto:
 cd ~/projects/autocaravana-web
-
-# 3. Arranca el servidor Sail (PHP, Nginx, MySQL):
 ./vendor/bin/sail up -d
 ```
 
-*(Esta terminal quedará libre para usar otros comandos de `sail artisan...` si lo necesitas).*
+> Note: This terminal is ready for sail artisan commands (migrations, seeding, etc.).
 
 ---
 
-### 2️⃣ Terminal 2: Frontend (CSS/JS)
+### 2️⃣ Frontend Assets (Terminal 2)
 
-Esta terminal compila el CSS (Tailwind) y JavaScript en tiempo real.
+This terminal compiles CSS and JS in real-time using Vite's Hot Module Replacement (HMR).
 
 ```bash
-# 1. Abre una *segunda* terminal de Ubuntu.
-# 2. Navega a la carpeta del proyecto:
 cd ~/projects/autocaravana-web
-
-# 3. Arranca el servidor Vite (se quedará "escuchando"):
 ./vendor/bin/sail npm run dev
 ```
 
-*(Esta terminal **se quedará ocupada** mostrando la salida de Vite. Déjala así).*
+> Note: Keep this process running to see UI changes instantly during development.
 
 ---
 
-## 💻 Abrir el Código (VS Code)
+## 💻 Code Access
 
-Puedes hacer esto en **cualquiera** de las dos terminales, **después** de haber entrado a la carpeta del proyecto (`cd ...`).
+Launch VS Code directly from your WSL environment to ensure proper integration:
 
 ```bash
 code .
@@ -60,82 +71,66 @@ code .
 
 ---
 
-## 🔗 Enlaces Útiles
+## 🔗 Local Access Points
 
-Una vez que ambos servidores estén corriendo:
-
-* **Web Pública:** [http://localhost](http://localhost)
-* **Panel de Admin:** [http://localhost/admin](http://localhost/admin)
+* **Public Site:** http://localhost  
+* **Admin Dashboard:** http://localhost/admin  
 
 ---
 
-## 🛑 Cómo Parar Todo
+## 🌍 Production Deployment Workflow
 
-Cuando termines de trabajar:
+Standardized workflow for deploying updates to a production Linux environment.
 
-1. En la **Terminal 2** (la de `npm run dev`), pulsa **Ctrl + C**.
-2. En la **Terminal 1**, ejecuta:
+---
+
+### 🧭 Phase 1: Local Preparation
+
+Compile assets for production:
 
 ```bash
-./vendor/bin/sail down
-```
-
----
-
-## 🌍 Despliegue en Producción
-
-Guía para subir los cambios del entorno local (desarrollo) al servidor de producción.
-
----
-
-### 🧭 Fase 1: En tu máquina local (Antes de subir)
-
-1. **Compilar los assets:** Tus cambios en CSS y JS deben ser compilados para producción.
-
-```bash
-# Ejecuta esto en tu terminal local (no en sail)
 npm run build
 ```
 
-2. **Confirmar todos los cambios en Git:** Sube todos tus archivos nuevos y modificados al repositorio.
+Commit and push changes to the main branch:
 
 ```bash
 git add .
-git commit -m "Descripción de los cambios (ej: Implementa reseñas y emails)"
-git push origin main  # O el nombre de tu rama principal
+git commit -m "feat: implement automated email notifications and security hardening"
+git push origin main
 ```
 
 ---
 
-### 🖥️ Fase 2: En tu Servidor de Producción
+### 🖥️ Phase 2: Server Execution (via SSH)
 
-Conéctate a tu servidor por SSH y ejecuta los siguientes comandos en la raíz de tu proyecto.
+Execute the following commands in the project's root directory on the production server:
 
-1. **Activar Modo Mantenimiento:** Pone la web "en pausa" para los visitantes.
+Enable Maintenance Mode:
 
 ```bash
 php artisan down
 ```
 
-2. **Actualizar el Código:** Descarga los cambios que subiste a Git.
+Pull Latest Updates:
 
 ```bash
 git pull origin main
 ```
 
-3. **Instalar Dependencias de Composer:** Actualiza el backend.
+Install Production Dependencies:
 
 ```bash
 composer install --no-dev --optimize-autoloader
 ```
 
-4. **Ejecutar las Migraciones:** ¡El paso más importante! Actualiza la base de datos de producción con las nuevas tablas y columnas.
+Execute Database Migrations:
 
 ```bash
 php artisan migrate --force
 ```
 
-5. **Optimizar la Caché:** Acelera la aplicación en producción.
+Cache Optimization (Crucial for Speed):
 
 ```bash
 php artisan config:cache
@@ -143,7 +138,7 @@ php artisan route:cache
 php artisan view:clear
 ```
 
-6. **Desactivar Modo Mantenimiento:** Vuelve a poner la web online.
+Disable Maintenance Mode:
 
 ```bash
 php artisan up
@@ -151,32 +146,54 @@ php artisan up
 
 ---
 
-### ⏰ Fase 3: Configurar el CRON JOB (Solo 1 vez)
+### ⏰ Phase 3: Task Scheduling (Cron Job)
 
-Esto es necesario para que los recordatorios por email ([RF7.1]) funcionen automáticamente.
+To ensure the `schedule:run` command (responsible for email [RF7.1]) works automatically:
 
-1. En tu servidor de producción, abre el editor de tareas cron:
+Open crontab:
 
 ```bash
 crontab -e
 ```
 
-2. Añade esta línea **al final** del archivo. Asegúrate de cambiar la ruta a la de tu proyecto.
+Add the following line (adjusting the path to your production directory):
 
 ```bash
-# Ejecuta el programador de Laravel cada minuto
-* * * * * cd /ruta/completa/a/tu/proyecto && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/autocaravana-web && php artisan schedule:run >> /dev/null 2>&1
 ```
-
-> *(Ejemplo de ruta: `/var/www/html/autocaravana-web`)*
-
-Esto "despertará" a Laravel cada minuto, y Laravel decidirá si es hora de ejecutar alguna tarea programada (como la de `dailyAt('09:00')` definida en `app/Console/Kernel.php`).
 
 ---
 
-## 🧾 Créditos
+## 🧾 Project Information
 
-**Autor:** Juan
-**Empresa:** TrookeM S.L.
-**Framework:** Laravel Sail (con Nginx, PHP, MySQL y Vite)
-**Fecha de última actualización:** Octubre 2025
+* **Lead Engineer:** Juan José Martínez Martínez  
+* **Organization:** TrookeM S.L.  
+* **Core Architecture:** Laravel Sail (Nginx, PHP 8.x, MySQL, Vite)  
+* **Last Maintenance Update:** February 2026  
+
+---
+
+## 🛑 How to Stop the Environment
+
+In Terminal 2, press `Ctrl + C` to stop Vite.
+
+In Terminal 1, run:
+
+```bash
+./vendor/bin/sail down
+```
+
+---
+
+## 🔐 Recommended `.gitignore` Configuration
+
+To make your GitHub repository look **Top Tier**, go to the main repository page, click **"Add File" → "Create new file"**, name it `.gitignore` (if you don’t already have one), and ensure it includes:
+
+```text
+.env
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+.phpunit.result.cache
+```
