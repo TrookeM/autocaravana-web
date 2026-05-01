@@ -16,7 +16,7 @@ class AlquifurgoSeeder extends Seeder
     {
         // Admin user (based on User model canAccessPanel email)
         User::firstOrCreate(
-            ['email' => 'admin@gmail.com'],
+            ['email' => 'admin@alquifurgo.es'],
             [
                 'name' => 'Admin Alquifurgo',
                 'password' => Hash::make('password'),
